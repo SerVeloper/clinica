@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, type CSSProperties } from 'vue'
+import { computed, onMounted, reactive, ref, watch, type CSSProperties } from 'vue'
 import ToastStack from './componentes/ui/ToastStack.vue'
 import { guardarSesion, leerSesion } from './compartido/api/almacenamiento-sesion'
 import { useToasts } from './compartido/composables/useToasts'
@@ -13,7 +13,7 @@ import AgendaView from './modulos/agenda/vistas/AgendaView.vue'
 import { actualizarEspecialidad, actualizarEstadoEspecialidad, crearEspecialidad, listarEspecialidades, listarEspecialidadesPaginado, type ActualizarEspecialidadPayload, type CrearEspecialidadPayload, type FiltrosEspecialidades } from './modulos/especialidades/servicios/especialidades-api'
 import type { Especialidad } from './modulos/especialidades/tipos/especialidad'
 import EspecialidadesView from './modulos/especialidades/vistas/EspecialidadesView.vue'
-import OperacionesView from './modulos/operaciones/vistas/OperacionesView.vue'
+import ConfiguracionesView, { type IdSeccionConfiguracion } from './modulos/configuraciones/vistas/ConfiguracionesView.vue'
 import { actualizarEstadoPaciente, actualizarPaciente, crearPaciente, listarPacientes, listarPacientesPaginado, type FiltrosPacientes } from './modulos/pacientes/servicios/pacientes-api'
 import type { Paciente } from './modulos/pacientes/tipos/paciente'
 import PacientesView from './modulos/pacientes/vistas/PacientesView.vue'
@@ -44,13 +44,73 @@ const { toasts, mostrarToast, cerrarToast } = useToasts()
 const tokenSesion = ref(leerSesion(STORAGE_TOKEN) ?? '')
 const usuarioActual = ref<Usuario | null>(leerUsuarioSesion())
 
-const vistas: VistaNavegacion[] = [
-  { id: 'agenda', etiqueta: 'Agenda', descripcion: 'Calendario y reservas', icono: 'calendar' },
-  { id: 'pacientes', etiqueta: 'Pacientes', descripcion: 'Altas y listado', icono: 'users' },
-  { id: 'profesionales', etiqueta: 'Profesionales', descripcion: 'Equipo clínico', icono: 'briefcase' },
-  { id: 'especialidades', etiqueta: 'Especialidades', descripcion: 'Catálogo disponible', icono: 'clipboard' },
-  { id: 'operaciones', etiqueta: 'Operaciones', descripcion: 'Estados y actividad', icono: 'activity' },
-]
+const configuracionAdmin: VistaNavegacion = {
+    id: 'configuraciones',
+    etiqueta: 'Configuraciones',
+    descripcion: 'Usuarios y acceso',
+    icono: 'ajustes',
+    hijos: [
+      { id: 'configuraciones-usuarios', etiqueta: 'Usuarios', icono: 'usuarios' },
+      { id: 'configuraciones-clinica', etiqueta: 'Clínica', icono: 'clinica' },
+      { id: 'configuraciones-horarios', etiqueta: 'Horarios', icono: 'horario' },
+    ],
+  }
+
+  const configuracionEspecialista: VistaNavegacion = {
+    id: 'configuraciones',
+    etiqueta: 'Configuraciones',
+    descripcion: 'Perfil de usuario',
+    icono: 'ajustes',
+    hijos: [
+      { id: 'configuraciones-perfil', etiqueta: 'Perfil', icono: 'perfil' },
+    ],
+  }
+
+  const todasLasVistas: VistaNavegacion[] = [
+    { id: 'agenda', etiqueta: 'Agenda', descripcion: 'Calendario y reservas', icono: 'calendar' },
+    { id: 'pacientes', etiqueta: 'Pacientes', descripcion: 'Altas y listado', icono: 'users' },
+    { id: 'profesionales', etiqueta: 'Profesionales', descripcion: 'Equipo clínico', icono: 'briefcase' },
+    { id: 'especialidades', etiqueta: 'Especialidades', descripcion: 'Catálogo disponible', icono: 'clipboard' },
+    configuracionAdmin,
+  ]
+
+const vistas = computed<VistaNavegacion[]>(() => {
+  if (usuarioActual.value?.rol === 'ADMIN') return todasLasVistas
+  return [
+    todasLasVistas[0], // agenda
+    todasLasVistas[1], // pacientes
+    todasLasVistas[2], // profesionales
+    configuracionEspecialista,
+  ]
+})
+
+function esVistaDisponible(id: VistaActiva): boolean {
+  return vistas.value.some((vista) => vista.id === id || vista.hijos?.some((hijo) => hijo.id === id))
+}
+
+function esVistaConfiguraciones(vista: VistaActiva): boolean {
+  return vista === 'configuraciones' || vista === 'configuraciones-perfil' || vista === 'configuraciones-usuarios' || vista === 'configuraciones-clinica' || vista === 'configuraciones-horarios'
+}
+
+watch(vistas, () => {
+  if (!esVistaDisponible(vistaActiva.value)) vistaActiva.value = 'agenda'
+})
+
+const subSeccionActiva = computed<IdSeccionConfiguracion>(() => {
+  if (vistaActiva.value === 'configuraciones') {
+    return usuarioActual.value?.rol === 'ADMIN' ? 'usuarios' : 'perfil'
+  }
+  switch (vistaActiva.value) {
+    case 'configuraciones-perfil':
+      return 'perfil'
+    case 'configuraciones-clinica':
+      return 'clinica'
+    case 'configuraciones-horarios':
+      return 'horarios'
+    default:
+      return 'usuarios'
+  }
+})
 
 const estadosReserva: EstadoReserva[] = ['PENDIENTE', 'CONFIRMADA', 'ATENDIDA', 'NO_ASISTIO', 'CANCELADA']
 const estadosTerminalesReserva: EstadoReserva[] = ['ATENDIDA', 'NO_ASISTIO', 'CANCELADA']
@@ -154,7 +214,7 @@ const filtrosReservas = reactive<FiltrosReservas>({
 
 const filtrosPacientes = reactive<FiltrosPacientes>({
   buscar: '',
-  activo: '',
+  activo: 'true',
   pagina: 1,
   limite: 10,
 })
@@ -162,14 +222,14 @@ const filtrosPacientes = reactive<FiltrosPacientes>({
 const filtrosProfesionales = reactive<FiltrosProfesionales>({
   buscar: '',
   especialidadId: '',
-  activo: '',
+  activo: 'true',
   pagina: 1,
   limite: 10,
 })
 
 const filtrosEspecialidades = reactive<FiltrosEspecialidades>({
   buscar: '',
-  activo: '',
+  activo: 'true',
   pagina: 1,
   limite: 10,
 })
@@ -189,8 +249,6 @@ const intervaloAgendaMinutos = computed(() => {
 
 const { diasSemana, tituloSemana, filasAgenda, cambiarSemana, irAHoy, reservasEnHorario } = useAgenda(inicioRangoCalendario, reservasOrdenadas, intervaloAgendaMinutos)
 
-const proximasReservas = computed(() => reservasOrdenadas.value.filter((reserva) => !esEstadoTerminal(reserva.estado)).slice(0, 5))
-const etiquetaFiltroEstado = computed(() => (filtrosReservas.estado ? etiquetaEstado(filtrosReservas.estado) : 'Todos los estados'))
 const reservaSeleccionada = computed(() => reservas.value.find((reserva) => reserva.id === reservaSeleccionadaId.value) ?? null)
 const agendaGlobal = computed(() => !filtrosReservas.profesionalId)
 const profesionalIdSesion = computed(() => usuarioActual.value?.rol === 'ESPECIALISTA' ? usuarioActual.value.profesionalId : null)
@@ -432,9 +490,9 @@ async function cargarDatosBase() {
       listarPacientes(),
       listarProfesionales(),
       listarReservas(filtrosReservas),
-      listarUsuarios(),
-      listarPacientesPaginado(filtrosPacientes),
-      listarProfesionalesPaginado(filtrosProfesionales),
+      usuarioActual.value?.rol === 'ADMIN' ? listarUsuarios() : Promise.resolve([]),
+      listarPacientesPaginado(filtrosPacientesParaListado()),
+      listarProfesionalesPaginado(filtrosProfesionalesParaListado()),
       listarEspecialidadesPaginado(filtrosEspecialidades),
     ])
 
@@ -452,27 +510,37 @@ async function cargarDatosBase() {
 async function refrescarPacientesPaginados(pagina = 1) {
   filtrosPacientes.pagina = pagina
   await ejecutarConEstado(async () => {
-    pacientesPaginados.value = await listarPacientesPaginado(filtrosPacientes)
+    pacientesPaginados.value = await listarPacientesPaginado(filtrosPacientesParaListado())
   })
 }
 
 async function refrescarPacientesCompletoYPaginado() {
-  const [pacientesApi, pacientesPaginaApi] = await Promise.all([listarPacientes(), listarPacientesPaginado(filtrosPacientes)])
+  const [pacientesApi, pacientesPaginaApi] = await Promise.all([listarPacientes(), listarPacientesPaginado(filtrosPacientesParaListado())])
   pacientes.value = pacientesApi
   pacientesPaginados.value = pacientesPaginaApi
+}
+
+function filtrosPacientesParaListado(): FiltrosPacientes {
+  if (usuarioActual.value?.rol === 'ADMIN') return filtrosPacientes
+  return { ...filtrosPacientes, activo: 'true' }
 }
 
 async function refrescarProfesionalesPaginados(pagina = 1) {
   filtrosProfesionales.pagina = pagina
   await ejecutarConEstado(async () => {
-    profesionalesPaginados.value = await listarProfesionalesPaginado(filtrosProfesionales)
+    profesionalesPaginados.value = await listarProfesionalesPaginado(filtrosProfesionalesParaListado())
   })
 }
 
 async function refrescarProfesionalesCompletoYPaginado() {
-  const [profesionalesApi, profesionalesPaginaApi] = await Promise.all([listarProfesionales(), listarProfesionalesPaginado(filtrosProfesionales)])
+  const [profesionalesApi, profesionalesPaginaApi] = await Promise.all([listarProfesionales(), listarProfesionalesPaginado(filtrosProfesionalesParaListado())])
   profesionales.value = profesionalesApi
   profesionalesPaginados.value = profesionalesPaginaApi
+}
+
+function filtrosProfesionalesParaListado(): FiltrosProfesionales {
+  if (usuarioActual.value?.rol === 'ADMIN') return filtrosProfesionales
+  return { ...filtrosProfesionales, activo: 'true' }
 }
 
 async function refrescarEspecialidadesPaginadas(pagina = 1) {
@@ -824,6 +892,7 @@ onMounted(() => {
         :paciente-estado-pendiente="pacienteEstadoPendiente"
         :modal-alta-abierto="modalPacienteAbierto"
         :cargando="cargando"
+        :puede-cambiar-estado="usuarioActual.rol === 'ADMIN'"
         @guardar-paciente="guardarPaciente"
         @abrir-alta="modalPacienteAbierto = true"
         @cerrar-alta="modalPacienteAbierto = false"
@@ -849,6 +918,7 @@ onMounted(() => {
         :profesional-estado-pendiente="profesionalEstadoPendiente"
         :modal-alta-abierto="modalProfesionalAbierto"
         :cargando="cargando"
+        :puede-gestionar="usuarioActual.rol === 'ADMIN'"
         :nombre-especialidad="nombreEspecialidad"
         @guardar-profesional="guardarProfesional"
         @abrir-alta="modalProfesionalAbierto = true"
@@ -886,21 +956,14 @@ onMounted(() => {
         @cambiar-pagina="refrescarEspecialidadesPaginadas"
       />
 
-      <OperacionesView
-        v-else
-        :filtros-reservas="filtrosReservas"
-        :etiqueta-filtro-estado="etiquetaFiltroEstado"
-        :proximas-reservas="proximasReservas"
-        :formatear-fecha="formatearFecha"
-        :nombre-completo-paciente="nombreCompletoPaciente"
-        :nombre-completo-profesional="nombreCompletoProfesional"
-        :etiqueta-estado="etiquetaEstado"
+      <ConfiguracionesView
+        v-else-if="esVistaConfiguraciones(vistaActiva)"
         :usuarios="usuarios"
         :profesionales="profesionales"
         :formulario-usuario="formularioUsuario"
         :puede-crear-usuarios="usuarioActual.rol === 'ADMIN'"
-        @refrescar-reservas="refrescarReservas"
-        @abrir-detalle-reserva="abrirDetalleReserva"
+        :nombre-completo-profesional="nombreCompletoProfesional"
+        :sub-seccion-activa="subSeccionActiva"
         @guardar-usuario="guardarUsuario"
       />
     </AdminLayout>

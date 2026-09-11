@@ -23,6 +23,7 @@ defineProps<{
   pacienteEstadoPendiente: Paciente | null
   modalAltaAbierto: boolean
   cargando: boolean
+  puedeCambiarEstado: boolean
 }>()
 
 defineEmits<{
@@ -43,16 +44,12 @@ defineEmits<{
 <template>
   <div>
     <section class="rounded-[2rem] border border-borde bg-superficie p-5 shadow-xl shadow-sombra/5">
-      <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 class="text-xl font-black text-texto">Pacientes</h2>
-          <p class="text-sm text-texto-secundario">{{ respuesta.total }} registros encontrados. Los inactivos quedan visibles para historial, pero no se ofrecen en nuevas reservas.</p>
-        </div>
+      <div class="flex justify-end">
         <button type="button" class="rounded-2xl bg-accion px-4 py-2 font-bold text-sobre-accion transition hover:bg-accion-hover" @click="$emit('abrirAlta')">Agregar paciente</button>
       </div>
-      <form class="mt-4 grid gap-2 md:grid-cols-[minmax(0,1fr)_180px_auto]" @submit.prevent="$emit('buscar')">
+      <form class="mt-4 grid gap-2" :class="puedeCambiarEstado ? 'md:grid-cols-[minmax(0,1fr)_180px_auto]' : 'md:grid-cols-[minmax(0,1fr)_auto]'" @submit.prevent="$emit('buscar')">
         <input v-model="filtros.buscar" class="rounded-2xl border border-control px-3 py-2" placeholder="Buscar por nombre, apellido, teléfono o email" />
-        <select v-model="filtros.activo" class="rounded-2xl border border-control bg-superficie px-3 py-2">
+        <select v-if="puedeCambiarEstado" v-model="filtros.activo" class="rounded-2xl border border-control bg-superficie px-3 py-2">
           <option value="">Todos</option>
           <option value="true">Activos</option>
           <option value="false">Inactivos</option>
@@ -67,7 +64,7 @@ defineEmits<{
               <th class="px-4 py-3">Nombre</th>
               <th class="px-4 py-3">Teléfono</th>
               <th class="px-4 py-3">Email</th>
-              <th class="px-4 py-3">Estado</th>
+              <th v-if="puedeCambiarEstado" class="px-4 py-3">Estado</th>
               <th class="rounded-r-2xl px-4 py-3 text-right">Acciones</th>
             </tr>
           </thead>
@@ -77,7 +74,7 @@ defineEmits<{
               <td class="px-4 py-3 text-texto-secundario">{{ paciente.nombre }}</td>
               <td class="px-4 py-3 text-texto-secundario">{{ paciente.telefono }}</td>
               <td class="px-4 py-3 text-texto-secundario">{{ paciente.email || 'Sin email' }}</td>
-              <td class="px-4 py-3"><span :class="paciente.activo ? 'bg-exito-suave text-exito-texto ring-exito-borde' : 'bg-deshabilitado text-texto-deshabilitado ring-control'" class="rounded-full px-3 py-1 text-xs font-black ring-1">{{ paciente.activo ? 'Activo' : 'Inactivo' }}</span></td>
+              <td v-if="puedeCambiarEstado" class="px-4 py-3"><span :class="paciente.activo ? 'bg-exito-suave text-exito-texto ring-exito-borde' : 'bg-deshabilitado text-texto-deshabilitado ring-control'" class="rounded-full px-3 py-1 text-xs font-black ring-1">{{ paciente.activo ? 'Activo' : 'Inactivo' }}</span></td>
               <td class="px-4 py-3 text-right">
                 <div class="flex justify-end gap-2">
                   <a v-if="enlaceWhatsapp(paciente.telefono)" :href="enlaceWhatsapp(paciente.telefono) ?? undefined" target="_blank" rel="noopener noreferrer" class="rounded-xl border border-exito-borde p-2 text-exito-texto transition hover:bg-exito-fondo" title="Contactar por WhatsApp" aria-label="Contactar paciente por WhatsApp">
@@ -95,13 +92,13 @@ defineEmits<{
                   <button type="button" class="rounded-xl border border-control p-2 text-enlace transition hover:bg-secundaria" title="Editar paciente" aria-label="Editar paciente" @click="$emit('iniciarEdicion', paciente)">
                     <Icono nombre="editar" class="h-4 w-4" />
                   </button>
-                  <button type="button" :disabled="cargando" :class="paciente.activo ? 'border-advertencia-borde bg-advertencia-fondo text-advertencia-texto hover:bg-advertencia-suave' : 'border-exito-borde bg-exito-fondo text-exito-texto hover:bg-exito-suave'" class="rounded-xl border p-2 transition disabled:opacity-60" :title="paciente.activo ? 'Desactivar paciente' : 'Activar paciente'" :aria-label="paciente.activo ? 'Desactivar paciente' : 'Activar paciente'" @click="$emit('cambiarEstado', paciente)">
+                  <button v-if="puedeCambiarEstado" type="button" :disabled="cargando" :class="paciente.activo ? 'border-advertencia-borde bg-advertencia-fondo text-advertencia-texto hover:bg-advertencia-suave' : 'border-exito-borde bg-exito-fondo text-exito-texto hover:bg-exito-suave'" class="rounded-xl border p-2 transition disabled:opacity-60" :title="paciente.activo ? 'Desactivar paciente' : 'Activar paciente'" :aria-label="paciente.activo ? 'Desactivar paciente' : 'Activar paciente'" @click="$emit('cambiarEstado', paciente)">
                     <Icono :nombre="paciente.activo ? 'desactivar' : 'activar'" class="h-4 w-4" />
                   </button>
                 </div>
               </td>
             </tr>
-            <tr v-if="respuesta.datos.length === 0"><td colspan="6" class="px-4 py-8 text-center font-semibold text-texto-secundario">No hay pacientes para los filtros aplicados.</td></tr>
+            <tr v-if="respuesta.datos.length === 0"><td :colspan="puedeCambiarEstado ? 6 : 5" class="px-4 py-8 text-center font-semibold text-texto-secundario">No hay pacientes para los filtros aplicados.</td></tr>
           </tbody>
         </table>
       </div>

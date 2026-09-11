@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { mapearError } from '../../../../compartido/infraestructura/filtros/mapear-error';
+import { Roles } from '../../../../compartido/infraestructura/decorators/roles.decorator';
 import { ActualizarProfesionalCasoUso } from '../../aplicacion/casos-uso/actualizar-profesional.caso-uso';
 import { ActualizarEstadoProfesionalCasoUso } from '../../aplicacion/casos-uso/actualizar-estado-profesional.caso-uso';
 import { CrearProfesionalCasoUso } from '../../aplicacion/casos-uso/crear-profesional.caso-uso';
@@ -21,6 +22,7 @@ export class ProfesionalesControlador {
   ) {}
 
   @Post()
+  @Roles('ADMIN')
   @ApiCreatedResponse({ description: 'Crea un profesional' })
   async crear(@Body() dto: CrearProfesionalDto) {
     try {
@@ -31,6 +33,7 @@ export class ProfesionalesControlador {
   }
 
   @Patch(':id')
+  @Roles('ADMIN')
   @ApiOkResponse({ description: 'Actualiza un profesional' })
   async actualizar(@Param('id') id: string, @Body() dto: ActualizarProfesionalDto) {
     try {
@@ -41,6 +44,7 @@ export class ProfesionalesControlador {
   }
 
   @Patch(':id/estado')
+  @Roles('ADMIN')
   @ApiOkResponse({ description: 'Activa o desactiva un profesional' })
   async actualizarEstado(@Param('id') id: string, @Body() dto: ActualizarEstadoProfesionalDto) {
     try {

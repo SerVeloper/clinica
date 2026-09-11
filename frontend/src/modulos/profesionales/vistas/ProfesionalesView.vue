@@ -26,6 +26,7 @@ defineProps<{
   profesionalEstadoPendiente: Profesional | null
   modalAltaAbierto: boolean
   cargando: boolean
+  puedeGestionar: boolean
   nombreEspecialidad: (id: string) => string
 }>()
 
@@ -47,20 +48,16 @@ defineEmits<{
 <template>
   <div>
     <section class="rounded-[2rem] border border-borde bg-superficie p-5 shadow-xl shadow-sombra/5">
-      <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 class="text-xl font-black text-texto">Profesionales</h2>
-          <p class="text-sm text-texto-secundario">{{ respuesta.total }} integrantes encontrados. Los inactivos quedan para historial, pero no se ofrecen en nuevas reservas.</p>
-        </div>
-        <button type="button" class="rounded-2xl bg-accion px-4 py-2 font-bold text-sobre-accion transition hover:bg-accion-hover" @click="$emit('abrirAlta')">Agregar profesional</button>
+      <div class="flex justify-end">
+        <button v-if="puedeGestionar" type="button" class="rounded-2xl bg-accion px-4 py-2 font-bold text-sobre-accion transition hover:bg-accion-hover" @click="$emit('abrirAlta')">Agregar profesional</button>
       </div>
-      <form class="mt-4 grid gap-2 md:grid-cols-[minmax(0,1fr)_220px_180px_auto]" @submit.prevent="$emit('buscar')">
+      <form class="mt-4 grid gap-2" :class="puedeGestionar ? 'md:grid-cols-[minmax(0,1fr)_220px_180px_auto]' : 'md:grid-cols-[minmax(0,1fr)_220px_auto]'" @submit.prevent="$emit('buscar')">
         <input v-model="filtros.buscar" class="rounded-2xl border border-control px-3 py-2" placeholder="Buscar por nombre, apellido o teléfono" />
         <select v-model="filtros.especialidadId" class="rounded-2xl border border-control bg-superficie px-3 py-2">
           <option value="">Todas las especialidades</option>
           <option v-for="especialidad in especialidades" :key="especialidad.id" :value="especialidad.id">{{ especialidad.nombre }}</option>
         </select>
-        <select v-model="filtros.activo" class="rounded-2xl border border-control bg-superficie px-3 py-2">
+        <select v-if="puedeGestionar" v-model="filtros.activo" class="rounded-2xl border border-control bg-superficie px-3 py-2">
           <option value="">Todos</option>
           <option value="true">Activos</option>
           <option value="false">Inactivos</option>
@@ -75,7 +72,7 @@ defineEmits<{
                <th class="px-4 py-3">Nombre</th>
                <th class="px-4 py-3">Teléfono</th>
                <th class="px-4 py-3">Especialidad</th>
-              <th class="px-4 py-3">Estado</th>
+              <th v-if="puedeGestionar" class="px-4 py-3">Estado</th>
               <th class="rounded-r-2xl px-4 py-3 text-right">Acciones</th>
             </tr>
           </thead>
@@ -85,7 +82,7 @@ defineEmits<{
               <td class="px-4 py-3 text-texto-secundario">{{ profesional.nombre }}</td>
               <td class="px-4 py-3 text-texto-secundario">{{ profesional.telefono || 'Sin teléfono' }}</td>
               <td class="px-4 py-3 text-texto-secundario">{{ nombreEspecialidad(profesional.especialidadId) }}</td>
-              <td class="px-4 py-3"><span :class="profesional.activo ? 'bg-exito-suave text-exito-texto ring-exito-borde' : 'bg-deshabilitado text-texto-deshabilitado ring-control'" class="rounded-full px-3 py-1 text-xs font-black ring-1">{{ profesional.activo ? 'Activo' : 'Inactivo' }}</span></td>
+              <td v-if="puedeGestionar" class="px-4 py-3"><span :class="profesional.activo ? 'bg-exito-suave text-exito-texto ring-exito-borde' : 'bg-deshabilitado text-texto-deshabilitado ring-control'" class="rounded-full px-3 py-1 text-xs font-black ring-1">{{ profesional.activo ? 'Activo' : 'Inactivo' }}</span></td>
               <td class="px-4 py-3 text-right">
                 <div class="flex justify-end gap-2">
                   <a v-if="enlaceWhatsapp(profesional.telefono)" :href="enlaceWhatsapp(profesional.telefono) ?? undefined" target="_blank" rel="noopener noreferrer" class="rounded-xl border border-exito-borde p-2 text-exito-texto transition hover:bg-exito-fondo" title="Contactar por WhatsApp" aria-label="Contactar profesional por WhatsApp">
@@ -100,16 +97,16 @@ defineEmits<{
                   <button v-else type="button" disabled class="rounded-xl border border-borde bg-deshabilitado p-2 text-texto-deshabilitado" title="Sin teléfono para llamar" aria-label="Sin teléfono para llamar">
                     <Icono nombre="telefono" class="h-4 w-4" />
                   </button>
-                  <button type="button" class="rounded-xl border border-control p-2 text-enlace transition hover:bg-secundaria" title="Editar profesional" aria-label="Editar profesional" @click="$emit('iniciarEdicion', profesional)">
+                  <button v-if="puedeGestionar" type="button" class="rounded-xl border border-control p-2 text-enlace transition hover:bg-secundaria" title="Editar profesional" aria-label="Editar profesional" @click="$emit('iniciarEdicion', profesional)">
                     <Icono nombre="editar" class="h-4 w-4" />
                   </button>
-                  <button type="button" :disabled="cargando" :class="profesional.activo ? 'border-advertencia-borde bg-advertencia-fondo text-advertencia-texto hover:bg-advertencia-suave' : 'border-exito-borde bg-exito-fondo text-exito-texto hover:bg-exito-suave'" class="rounded-xl border p-2 transition disabled:opacity-60" :title="profesional.activo ? 'Desactivar profesional' : 'Activar profesional'" :aria-label="profesional.activo ? 'Desactivar profesional' : 'Activar profesional'" @click="$emit('cambiarEstado', profesional)">
+                  <button v-if="puedeGestionar" type="button" :disabled="cargando" :class="profesional.activo ? 'border-advertencia-borde bg-advertencia-fondo text-advertencia-texto hover:bg-advertencia-suave' : 'border-exito-borde bg-exito-fondo text-exito-texto hover:bg-exito-suave'" class="rounded-xl border p-2 transition disabled:opacity-60" :title="profesional.activo ? 'Desactivar profesional' : 'Activar profesional'" :aria-label="profesional.activo ? 'Desactivar profesional' : 'Activar profesional'" @click="$emit('cambiarEstado', profesional)">
                     <Icono :nombre="profesional.activo ? 'desactivar' : 'activar'" class="h-4 w-4" />
                   </button>
                 </div>
               </td>
             </tr>
-            <tr v-if="respuesta.datos.length === 0"><td colspan="6" class="px-4 py-8 text-center font-semibold text-texto-secundario">No hay profesionales para los filtros aplicados.</td></tr>
+            <tr v-if="respuesta.datos.length === 0"><td :colspan="puedeGestionar ? 6 : 5" class="px-4 py-8 text-center font-semibold text-texto-secundario">No hay profesionales para los filtros aplicados.</td></tr>
           </tbody>
         </table>
       </div>

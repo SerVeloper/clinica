@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './compartido/infraestructura/guards/auth.guard';
+import { RolesGuard } from './compartido/infraestructura/guards/roles.guard';
 import { PacientesModule } from './modulos/pacientes/pacientes.module';
 import { ProfesionalesModule } from './modulos/profesionales/profesionales.module';
 import { EspecialidadesModule } from './modulos/especialidades/especialidades.module';
@@ -28,6 +31,10 @@ import { UsuariosModule } from './modulos/usuarios/usuarios.module';
     ProfesionalesModule,
     UsuariosModule,
     ReservasModule,
+  ],
+  providers: [
+    { provide: APP_GUARD, useClass: AuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
   ],
 })
 export class AppModule {}

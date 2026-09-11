@@ -4,7 +4,7 @@ import SelectorTema from '../compartido/componentes/SelectorTema.vue'
 import Icono from '../compartido/componentes/Icono.vue'
 import type { VistaActiva, VistaNavegacion } from '../compartido/tipos/navegacion'
 
-defineProps<{
+const props = defineProps<{
   vistas: VistaNavegacion[]
   vistaActiva: VistaActiva
   navegacionColapsada: boolean
@@ -15,6 +15,10 @@ defineEmits<{
   alternarColapso: []
   logout: []
 }>()
+
+function esVistaActiva(vista: VistaNavegacion): boolean {
+  return props.vistaActiva === vista.id || (!!vista.hijos?.length && props.vistaActiva.startsWith(`${vista.id}-`))
+}
 </script>
 
 <template>
@@ -42,7 +46,7 @@ defineEmits<{
           :key="vista.id"
           type="button"
           class="min-h-10 flex-1 rounded-xl px-1.5 text-[10px] font-black transition focus-visible:ring-2 focus-visible:ring-foco"
-          :class="vistaActiva === vista.id ? 'bg-accion text-sobre-accion' : 'text-texto-secundario hover:bg-accion-hover hover:text-sobre-accion'"
+          :class="esVistaActiva(vista) ? 'bg-accion text-sobre-accion' : 'text-texto-secundario hover:bg-accion-hover hover:text-sobre-accion'"
           @click="$emit('cambiarVista', vista.id)"
         >
           {{ vista.etiqueta }}

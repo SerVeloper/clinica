@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { mapearError } from '../../../../compartido/infraestructura/filtros/mapear-error';
+import { Roles } from '../../../../compartido/infraestructura/decorators/roles.decorator';
 import { ActualizarEspecialidadCasoUso } from '../../aplicacion/casos-uso/actualizar-especialidad.caso-uso';
 import { ActualizarEstadoEspecialidadCasoUso } from '../../aplicacion/casos-uso/actualizar-estado-especialidad.caso-uso';
 import { CrearEspecialidadCasoUso } from '../../aplicacion/casos-uso/crear-especialidad.caso-uso';
@@ -21,6 +22,7 @@ export class EspecialidadesControlador {
   ) {}
 
   @Post()
+  @Roles('ADMIN')
   @ApiCreatedResponse({ description: 'Crea una especialidad' })
   async crear(@Body() dto: CrearEspecialidadDto) {
     try {
@@ -31,6 +33,7 @@ export class EspecialidadesControlador {
   }
 
   @Patch(':id')
+  @Roles('ADMIN')
   @ApiOkResponse({ description: 'Actualiza una especialidad' })
   async actualizar(@Param('id') id: string, @Body() dto: ActualizarEspecialidadDto) {
     try {
@@ -41,6 +44,7 @@ export class EspecialidadesControlador {
   }
 
   @Patch(':id/estado')
+  @Roles('ADMIN')
   @ApiOkResponse({ description: 'Activa o desactiva una especialidad' })
   async actualizarEstado(@Param('id') id: string, @Body() dto: ActualizarEstadoEspecialidadDto) {
     try {

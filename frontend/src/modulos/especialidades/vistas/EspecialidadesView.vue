@@ -41,11 +41,7 @@ defineEmits<{
 <template>
   <section>
     <div class="rounded-[2rem] border border-borde bg-superficie p-5 shadow-xl shadow-sombra/5">
-      <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 class="text-xl font-black text-texto">Especialidades</h2>
-          <p class="mt-1 text-sm text-texto-secundario">{{ respuesta.total }} registros encontrados. Las inactivas se conservan para historial, pero no se ofrecen en nuevas reservas.</p>
-        </div>
+      <div class="flex justify-end">
         <button type="button" class="rounded-2xl bg-accion px-4 py-2 font-bold text-sobre-accion transition hover:bg-accion-hover" @click="$emit('abrirAlta')">Agregar especialidad</button>
       </div>
       <form class="mt-4 grid gap-2 md:grid-cols-[minmax(0,1fr)_180px_auto]" @submit.prevent="$emit('buscar')">
