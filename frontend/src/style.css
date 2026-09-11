@@ -1,40 +1,77 @@
 @import "tailwindcss";
+@import "./temas/paletas.css";
 
-:root {
-  font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --color-bg: #f9fafb;
-  --color-surface: #ffffff;
-  --color-border: #e5e7eb;
-  --color-text-primary: #111827;
-  --color-text-secondary: #6b7280;
-  --color-primary: #7b6ed6;
-  --color-primary-hover: #6d28d9;
-  color: #172554;
-  background: var(--color-bg);
+@theme inline {
+  --color-pagina: var(--tema-pagina);
+  --color-superficie: var(--tema-superficie);
+  --color-secundaria: var(--tema-secundaria);
+  --color-texto: var(--tema-texto);
+  --color-texto-secundario: var(--tema-texto-secundario);
+  --color-borde: var(--tema-borde);
+  --color-control: var(--tema-control);
+  --color-foco: var(--tema-foco);
+  --color-accion: var(--tema-accion);
+  --color-accion-hover: var(--tema-accion-hover);
+  --color-sobre-accion: var(--tema-sobre-accion);
+  --color-enlace: var(--tema-enlace);
+  --color-seleccion: var(--tema-seleccion);
+  --color-deshabilitado: var(--tema-deshabilitado);
+  --color-texto-deshabilitado: var(--tema-texto-deshabilitado);
+  --color-overlay: var(--tema-overlay);
+  --color-sombra: var(--tema-sombra);
+  --color-tooltip: var(--tema-tooltip);
+  --color-tooltip-texto: var(--tema-tooltip-texto);
+  --color-marca: var(--tema-marca);
+  --color-marca-hover: var(--tema-marca-hover);
+  --color-exito-fondo: var(--tema-exito-fondo);
+  --color-exito-suave: var(--tema-exito-suave);
+  --color-exito-texto: var(--tema-exito-texto);
+  --color-exito-borde: var(--tema-exito-borde);
+  --color-exito-fuerte: var(--tema-exito-fuerte);
+  --color-exito-hover: var(--tema-exito-hover);
+  --color-advertencia-fondo: var(--tema-advertencia-fondo);
+  --color-advertencia-suave: var(--tema-advertencia-suave);
+  --color-advertencia-texto: var(--tema-advertencia-texto);
+  --color-advertencia-borde: var(--tema-advertencia-borde);
+  --color-advertencia-fuerte: var(--tema-advertencia-fuerte);
+  --color-advertencia-hover: var(--tema-advertencia-hover);
+  --color-error-fondo: var(--tema-error-fondo);
+  --color-error-suave: var(--tema-error-suave);
+  --color-error-texto: var(--tema-error-texto);
+  --color-error-borde: var(--tema-error-borde);
+  --color-error-fuerte: var(--tema-error-fuerte);
+  --color-error-hover: var(--tema-error-hover);
+  --color-info-fondo: var(--tema-info-fondo);
+  --color-info-suave: var(--tema-info-suave);
+  --color-info-texto: var(--tema-info-texto);
+  --color-info-borde: var(--tema-info-borde);
+  --color-ausente-fondo: var(--tema-ausente-fondo);
+  --color-ausente-suave: var(--tema-ausente-suave);
+  --color-ausente-texto: var(--tema-ausente-texto);
+  --color-ausente-borde: var(--tema-ausente-borde);
+  --color-identidad-fondo: var(--tema-identidad-fondo);
+  --color-identidad-texto: var(--tema-identidad-texto);
+  --color-identidad-borde: var(--tema-identidad-borde);
 }
 
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
-}
+@layer base {
+  :root {
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--tema-texto);
+    background: var(--tema-pagina);
+  }
 
-button,
-input,
-select {
-  font: inherit;
-}
-
-button,
-input,
-select {
-  accent-color: #2563eb;
-}
-
-input:focus,
-select:focus {
-  border-color: #2563eb;
-  outline: 2px solid rgb(37 99 235 / 0.22);
-  outline-offset: 2px;
+  body { margin: 0; min-width: 320px; min-height: 100vh; }
+  button, input, select, textarea { font: inherit; accent-color: var(--tema-accion); }
+  input, select, textarea {
+    color: var(--tema-texto);
+    background-color: var(--tema-superficie);
+    border-color: var(--tema-control);
+  }
+  input::placeholder, textarea::placeholder { color: var(--tema-texto-secundario); opacity: 1; }
+  :where(button, a, input, select, textarea):focus-visible {
+    outline: 2px solid var(--tema-foco);
+    outline-offset: 2px;
+  }
+  ::selection { color: var(--tema-texto); background: var(--tema-seleccion); }
 }

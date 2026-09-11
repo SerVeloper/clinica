@@ -15,12 +15,12 @@ defineEmits<{
     <div
       v-for="toast in toasts"
       :key="toast.id"
-      class="flex items-start gap-3 rounded-2xl border bg-white/95 px-4 py-3 shadow-2xl shadow-blue-950/15 backdrop-blur"
-      :class="toast.tipo === 'success' ? 'border-emerald-200 text-emerald-900' : 'border-red-200 text-red-900'"
+      class="flex items-start gap-3 rounded-2xl border px-4 py-3 shadow-2xl shadow-sombra/15"
+      :class="toast.tipo === 'success' ? 'bg-exito-fondo border-exito-borde text-exito-texto' : 'bg-error-fondo border-error-borde text-error-texto'"
     >
-      <span class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full" :class="toast.tipo === 'success' ? 'bg-emerald-500' : 'bg-red-500'"></span>
+      <span class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full" :class="toast.tipo === 'success' ? 'bg-exito-borde' : 'bg-error-borde'"></span>
       <p class="flex-1 text-sm font-bold leading-5">{{ toast.texto }}</p>
-      <button type="button" class="rounded-full px-2 text-lg leading-none text-slate-400 transition hover:bg-slate-100 hover:text-slate-700" aria-label="Cerrar notificación" @click="$emit('cerrar', toast.id)">
+      <button type="button" class="rounded-full px-2 text-lg leading-none transition hover:bg-superficie hover:text-texto" aria-label="Cerrar notificación" @click="$emit('cerrar', toast.id)">
         x
       </button>
     </div>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, type CSSProperties } from 'vue'
 import ToastStack from './componentes/ui/ToastStack.vue'
+import { guardarSesion, leerSesion } from './compartido/api/almacenamiento-sesion'
 import { useToasts } from './compartido/composables/useToasts'
 import type { RespuestaPaginada } from './compartido/tipos/paginacion'
 import type { VistaActiva, VistaNavegacion } from './compartido/tipos/navegacion'
@@ -40,7 +41,7 @@ const vistaActiva = ref<VistaActiva>('agenda')
 const inicioRangoCalendario = ref(obtenerInicioRangoCentrado(new Date()))
 const reservaSeleccionadaId = ref('')
 const { toasts, mostrarToast, cerrarToast } = useToasts()
-const tokenSesion = ref(localStorage.getItem(STORAGE_TOKEN) ?? '')
+const tokenSesion = ref(leerSesion(STORAGE_TOKEN) ?? '')
 const usuarioActual = ref<Usuario | null>(leerUsuarioSesion())
 
 const vistas: VistaNavegacion[] = [
@@ -54,14 +55,12 @@ const vistas: VistaNavegacion[] = [
 const estadosReserva: EstadoReserva[] = ['PENDIENTE', 'CONFIRMADA', 'ATENDIDA', 'NO_ASISTIO', 'CANCELADA']
 const estadosTerminalesReserva: EstadoReserva[] = ['ATENDIDA', 'NO_ASISTIO', 'CANCELADA']
 
-const coloresEspecialidad = [
-  { fondo: '#eff6ff', borde: '#2563eb', texto: '#1e3a8a', sombra: 'rgba(37, 99, 235, 0.18)' },
-  { fondo: '#f0fdf4', borde: '#16a34a', texto: '#14532d', sombra: 'rgba(22, 163, 74, 0.18)' },
-  { fondo: '#fdf4ff', borde: '#c026d3', texto: '#701a75', sombra: 'rgba(192, 38, 211, 0.18)' },
-  { fondo: '#fff7ed', borde: '#ea580c', texto: '#7c2d12', sombra: 'rgba(234, 88, 12, 0.18)' },
-  { fondo: '#ecfeff', borde: '#0891b2', texto: '#164e63', sombra: 'rgba(8, 145, 178, 0.18)' },
-  { fondo: '#fefce8', borde: '#ca8a04', texto: '#713f12', sombra: 'rgba(202, 138, 4, 0.18)' },
-]
+const coloresEspecialidad = [1, 2, 3, 4, 5, 6].map((indice) => ({
+  fondo: `var(--especialidad-${indice}-fondo)`,
+  borde: `var(--especialidad-${indice}-borde)`,
+  texto: `var(--especialidad-${indice}-texto)`,
+  sombra: `color-mix(in srgb, var(--especialidad-${indice}-borde) 18%, transparent)`,
+}))
 
 const especialidades = ref<Especialidad[]>([])
 const pacientes = ref<Paciente[]>([])
@@ -218,13 +217,13 @@ function crearPaginaVacia<T>(): RespuestaPaginada<T> {
 }
 
 function leerUsuarioSesion(): Usuario | null {
-  const guardado = localStorage.getItem(STORAGE_USUARIO)
+  const guardado = leerSesion(STORAGE_USUARIO)
   if (!guardado) return null
 
   try {
     return JSON.parse(guardado) as Usuario
   } catch {
-    localStorage.removeItem(STORAGE_USUARIO)
+    guardarSesion(STORAGE_USUARIO, null)
     return null
   }
 }
@@ -295,11 +294,11 @@ function formatearHora(fecha: string) {
 
 function clasesReserva(estado: EstadoReserva) {
   const clases: Record<EstadoReserva, string> = {
-    PENDIENTE: 'border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100',
-    CONFIRMADA: 'border-blue-200 bg-blue-600 text-white hover:bg-blue-700',
-    ATENDIDA: 'border-emerald-200 bg-emerald-100 text-emerald-900 hover:bg-emerald-200',
-    NO_ASISTIO: 'border-orange-200 bg-orange-100 text-orange-900 hover:bg-orange-200',
-    CANCELADA: 'border-slate-200 bg-slate-100 text-slate-500 line-through hover:bg-slate-200',
+    PENDIENTE: 'border-advertencia-borde bg-advertencia-fondo text-advertencia-texto hover:bg-advertencia-suave',
+    CONFIRMADA: 'border-info-borde bg-accion text-sobre-accion hover:bg-accion-hover',
+    ATENDIDA: 'border-exito-borde bg-exito-fondo text-exito-texto hover:bg-exito-suave',
+    NO_ASISTIO: 'border-ausente-borde bg-ausente-fondo text-ausente-texto hover:bg-ausente-suave',
+    CANCELADA: 'border-control bg-deshabilitado text-texto-deshabilitado line-through hover:bg-secundaria',
   }
 
   return clases[estado]
@@ -307,11 +306,11 @@ function clasesReserva(estado: EstadoReserva) {
 
 function clasesBadgeEstadoReserva(estado: EstadoReserva) {
   const clases: Record<EstadoReserva, string> = {
-    PENDIENTE: 'bg-amber-100 text-amber-900 ring-1 ring-amber-200',
-    CONFIRMADA: 'bg-blue-950 text-white ring-1 ring-blue-900',
-    ATENDIDA: 'bg-emerald-100 text-emerald-900 ring-1 ring-emerald-200',
-    NO_ASISTIO: 'bg-orange-100 text-orange-900 ring-1 ring-orange-200',
-    CANCELADA: 'bg-slate-200 text-slate-600 ring-1 ring-slate-300',
+    PENDIENTE: 'bg-advertencia-suave text-advertencia-texto ring-1 ring-advertencia-borde',
+    CONFIRMADA: 'bg-marca text-sobre-accion ring-1 ring-info-borde',
+    ATENDIDA: 'bg-exito-suave text-exito-texto ring-1 ring-exito-borde',
+    NO_ASISTIO: 'bg-ausente-suave text-ausente-texto ring-1 ring-ausente-borde',
+    CANCELADA: 'bg-deshabilitado text-texto-deshabilitado ring-1 ring-control',
   }
 
   return clases[estado]
@@ -320,9 +319,9 @@ function clasesBadgeEstadoReserva(estado: EstadoReserva) {
 function estiloReservaAgenda(reserva: Reserva): CSSProperties {
   if (esEstadoTerminal(reserva.estado)) {
     return {
-      backgroundColor: '#f1f5f9',
-      borderColor: '#cbd5e1',
-      color: '#475569',
+      backgroundColor: 'var(--tema-deshabilitado)',
+      borderColor: 'var(--tema-control)',
+      color: 'var(--tema-texto-deshabilitado)',
       boxShadow: 'none',
     }
   }
@@ -335,7 +334,7 @@ function estiloReservaAgenda(reserva: Reserva): CSSProperties {
   return {
     backgroundColor: confirmado ? color.borde : color.fondo,
     borderColor: color.borde,
-    color: confirmado ? '#ffffff' : color.texto,
+    color: confirmado ? 'var(--especialidad-confirmada-texto)' : color.texto,
     boxShadow: confirmado ? `0 8px 18px ${color.sombra}` : 'none',
   }
 }
@@ -486,8 +485,8 @@ async function refrescarEspecialidadesPaginadas(pagina = 1) {
 async function ingresar() {
   await ejecutarConEstado(async () => {
     const respuesta = await login({ ...formularioLogin })
-    localStorage.setItem(STORAGE_TOKEN, respuesta.token)
-    localStorage.setItem(STORAGE_USUARIO, JSON.stringify(respuesta.usuario))
+    guardarSesion(STORAGE_TOKEN, respuesta.token)
+    guardarSesion(STORAGE_USUARIO, JSON.stringify(respuesta.usuario))
     tokenSesion.value = respuesta.token
     usuarioActual.value = respuesta.usuario
     aplicarFiltroInicialUsuario(respuesta.usuario)
@@ -496,8 +495,8 @@ async function ingresar() {
 }
 
 function cerrarSesion() {
-  localStorage.removeItem(STORAGE_TOKEN)
-  localStorage.removeItem(STORAGE_USUARIO)
+  guardarSesion(STORAGE_TOKEN, null)
+  guardarSesion(STORAGE_USUARIO, null)
   tokenSesion.value = ''
   usuarioActual.value = null
   reservas.value = []
@@ -770,7 +769,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="min-h-screen bg-[var(--color-bg)] text-slate-950">
+  <main class="min-h-screen bg-pagina text-texto">
     <LoginView
       v-if="!usuarioActual"
       v-model:usuario="formularioLogin.usuario"
@@ -784,10 +783,6 @@ onMounted(() => {
       :vistas="vistas"
       :vista-activa="vistaActiva"
       :navegacion-colapsada="navegacionColapsada"
-      :cantidad-reservas="reservas.length"
-      :cantidad-pacientes="pacientes.length"
-      :cantidad-profesionales="profesionales.length"
-      :usuario-actual="usuarioActual"
       @cambiar-vista="vistaActiva = $event"
       @alternar-colapso="navegacionColapsada = !navegacionColapsada"
       @logout="cerrarSesion"
