@@ -1,0 +1,324 @@
+<script setup lang="ts">
+import { computed, nextTick, onMounted, ref, watch, type CSSProperties } from 'vue'
+import Icono from '../../../compartido/componentes/Icono.vue'
+import type { Reserva, EstadoReserva } from '../../reservas/tipos/reserva'
+import { claveFilaAgenda, horaReferenciaActual, horaReserva, subslotsHorario, turnoReferenciaActual, type FilaAgenda, type TurnoAgendaId } from '../composables/useAgenda'
+
+interface DiaSemana {
+  fecha: Date
+  iso: string
+  dia: string
+  numero: string
+}
+
+const props = defineProps<{
+  tituloSemana: string
+  diasSemana: DiaSemana[]
+  filasAgenda: FilaAgenda[]
+  intervaloMinutos: number
+  esHoy: (diaIso: string) => boolean
+  esSlotPasado: (diaIso: string, hora: string) => boolean
+  reservasEnHorario: (diaIso: string, hora: string) => Reserva[]
+  estiloReservaAgenda: (reserva: Reserva) => CSSProperties
+  clasesBadgeEstadoReserva: (estado: EstadoReserva) => string
+  nombrePacienteAgenda: (id: string) => string
+  nombreEspecialidad: (id: string) => string
+  etiquetaEstado: (estado: EstadoReserva) => string
+  esEstadoTerminal: (estado: EstadoReserva) => boolean
+  cargando: boolean
+  puedeAlternarAgendaGlobal: boolean
+  agendaGlobal: boolean
+}>()
+
+const emit = defineEmits<{
+  cambiarSemana: [dias: number]
+  irAHoy: []
+  irAPendientes: []
+  refrescarReservas: []
+  alternarAgendaGlobal: []
+  abrirModalReserva: [diaIso: string, hora: string]
+  abrirDetalleReserva: [id: string]
+}>()
+
+const contenedorHoras = ref<HTMLElement | null>(null)
+const filasAgendaRegistradas = new Map<string, HTMLElement>()
+const horaReferencia = ref(horaReferenciaActual(new Date(), props.intervaloMinutos))
+const turnoInicial = turnoReferenciaActual(new Date())
+const turnosExpandidos = ref<Record<TurnoAgendaId, boolean>>({
+  manana: turnoInicial === 'manana',
+  tarde: turnoInicial === 'tarde',
+})
+
+const hayHoyEnRango = computed(() => props.diasSemana.some((dia) => props.esHoy(dia.iso)))
+const firmaDiasSemana = computed(() => props.diasSemana.map((dia) => dia.iso).join('|'))
+const estadosLeyendaReserva: EstadoReserva[] = ['PENDIENTE', 'CONFIRMADA', 'ATENDIDA', 'NO_ASISTIO', 'CANCELADA']
+const filasAgendaVisibles = computed(() => props.filasAgenda.filter((fila) => fila.tipo !== 'horario' || turnosExpandidos.value[fila.turnoId]))
+
+function esFilaHoraReferencia(hora: string) {
+  return esFilaReferencia(`horario:${hora}`)
+}
+
+function esFilaReferencia(clave: string) {
+  return hayHoyEnRango.value && clave === horaReferencia.value
+}
+
+function esTurnoProtegido(turnoId: TurnoAgendaId) {
+  return hayHoyEnRango.value && turnoReferenciaActual(new Date()) === turnoId && !horaReferencia.value.startsWith('pausa:')
+}
+
+function alternarTurno(turnoId: TurnoAgendaId) {
+  if (turnosExpandidos.value[turnoId] && esTurnoProtegido(turnoId)) return
+
+  turnosExpandidos.value[turnoId] = !turnosExpandidos.value[turnoId]
+  asegurarTurnoVisibleParaReferencia()
+}
+
+function asegurarTurnoVisibleParaReferencia() {
+  const turnoReferencia = turnoReferenciaActual(new Date())
+
+  if (horaReferencia.value.startsWith('horario:')) {
+    turnosExpandidos.value[turnoReferencia] = true
+    return
+  }
+
+  if (horaReferencia.value.startsWith('pausa:') && !turnosExpandidos.value.manana && !turnosExpandidos.value.tarde) {
+    turnosExpandidos.value.tarde = true
+  }
+}
+
+function registrarFilaAgenda(clave: string, elemento: Element | null) {
+  if (elemento instanceof HTMLElement) {
+    filasAgendaRegistradas.set(clave, elemento)
+    return
+  }
+
+  filasAgendaRegistradas.delete(clave)
+}
+
+async function centrarHoraActual() {
+  if (!hayHoyEnRango.value) return
+
+  horaReferencia.value = horaReferenciaActual(new Date(), props.intervaloMinutos)
+  asegurarTurnoVisibleParaReferencia()
+  await nextTick()
+
+  const contenedor = contenedorHoras.value
+  const fila = filasAgendaRegistradas.get(horaReferencia.value)
+  if (!contenedor || !fila) return
+
+  contenedor.scrollTop = fila.offsetTop - contenedor.clientHeight / 2 + fila.clientHeight / 2
+}
+
+function irAHoyYCentrarHora() {
+  emit('irAHoy')
+  void centrarHoraActual()
+}
+
+function descripcionReserva(reserva: Reserva) {
+  return `Ver reserva de ${props.nombrePacienteAgenda(reserva.pacienteId)}, ${props.nombreEspecialidad(reserva.especialidadId)}, estado ${props.etiquetaEstado(reserva.estado)}`
+}
+
+function subslotsFila(hora: string) {
+  return subslotsHorario(hora, props.intervaloMinutos)
+}
+
+function reservasEnSubslot(diaIso: string, horaFila: string, horaSubslot: string) {
+  return props.reservasEnHorario(diaIso, horaFila).filter((reserva) => horaReserva(reserva) === horaSubslot)
+}
+
+function esFilaPasada(diaIso: string, hora: string) {
+  const subslots = subslotsFila(hora)
+  if (subslots.length === 0) return props.esSlotPasado(diaIso, hora)
+
+  return subslots.every((horaSubslot) => props.esSlotPasado(diaIso, horaSubslot))
+}
+
+watch(firmaDiasSemana, () => {
+  void centrarHoraActual()
+})
+
+watch(() => props.intervaloMinutos, () => {
+  void centrarHoraActual()
+})
+
+onMounted(() => {
+  void centrarHoraActual()
+})
+</script>
+
+<template>
+  <div class="overflow-hidden rounded-3xl border border-blue-100 bg-white shadow-xl shadow-blue-900/5">
+    <div class="border-b border-blue-100 bg-white/80 p-3 md:p-4">
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-[0.22em] text-blue-700">Calendario semanal</p>
+          <h2 class="mt-0.5 text-xl font-black text-blue-950 md:text-2xl">{{ tituloSemana }}</h2>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <button v-if="puedeAlternarAgendaGlobal" type="button" class="rounded-xl border border-violet-200 bg-white px-3 py-1.5 text-xs font-bold text-violet-800 transition hover:bg-violet-50" @click="$emit('alternarAgendaGlobal')">
+            {{ agendaGlobal ? 'Mi agenda' : 'Ver global' }}
+          </button>
+          <button type="button" class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-900 transition hover:bg-amber-100" @click="$emit('irAPendientes')">
+            Pendientes
+          </button>
+          <button type="button" :disabled="cargando" class="rounded-xl border border-blue-200 bg-white px-3 py-1.5 text-xs font-bold text-blue-800 transition hover:bg-blue-50 disabled:opacity-60" @click="$emit('refrescarReservas')">
+            Actualizar
+          </button>
+          <button type="button" class="rounded-xl border border-blue-200 bg-white px-3 py-1.5 text-xs font-bold text-blue-800 transition hover:bg-blue-50" @click="$emit('cambiarSemana', -7)">
+            Semana anterior
+          </button>
+          <button type="button" class="rounded-xl bg-blue-700 px-3 py-1.5 text-xs font-bold text-white shadow-lg shadow-blue-700/25 transition hover:bg-blue-800" @click="irAHoyYCentrarHora">
+            Hoy
+          </button>
+          <button type="button" class="rounded-xl border border-blue-200 bg-white px-3 py-1.5 text-xs font-bold text-blue-800 transition hover:bg-blue-50" @click="$emit('cambiarSemana', 7)">
+            Semana siguiente
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-3 flex flex-wrap items-center gap-1.5" aria-label="Leyenda de estados de reserva">
+        <span class="text-xs font-black uppercase tracking-[0.18em] text-blue-500">Estados</span>
+        <span v-for="estado in estadosLeyendaReserva" :key="estado" class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wide" :class="clasesBadgeEstadoReserva(estado)">
+          <span class="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true"></span>
+          {{ etiquetaEstado(estado) }}
+        </span>
+      </div>
+
+    </div>
+
+    <div class="overflow-x-auto">
+      <div ref="contenedorHoras" class="max-h-[calc(100vh-7rem)] min-w-[760px] overflow-y-auto">
+        <div class="sticky top-0 z-20 grid grid-cols-[64px_repeat(7,minmax(96px,1fr))] border-b border-blue-100 bg-blue-50/95 shadow-sm backdrop-blur">
+          <div class="sticky left-0 z-30 bg-blue-50/95 px-2 py-2 text-[10px] font-bold uppercase tracking-wide text-blue-500 backdrop-blur">Hora</div>
+          <div v-for="dia in diasSemana" :key="dia.iso" class="border-l border-blue-100 px-2 py-1.5 text-center" :class="esHoy(dia.iso) ? 'bg-blue-700 text-white shadow-inner' : ''">
+            <p class="text-[10px] font-bold uppercase tracking-[0.16em]" :class="esHoy(dia.iso) ? 'text-blue-100' : 'text-blue-500'">{{ dia.dia }}</p>
+            <p class="text-lg font-black leading-none" :class="esHoy(dia.iso) ? 'text-white' : 'text-blue-950'">{{ dia.numero }}</p>
+            <p v-if="esHoy(dia.iso)" class="mt-0.5 text-[9px] font-black uppercase tracking-[0.16em] text-blue-100">Hoy</p>
+          </div>
+        </div>
+
+        <div
+          v-for="fila in filasAgendaVisibles"
+          :key="claveFilaAgenda(fila)"
+          :ref="(elemento) => registrarFilaAgenda(claveFilaAgenda(fila), elemento)"
+          class="grid grid-cols-[64px_repeat(7,minmax(96px,1fr))] border-b border-blue-50 last:border-b-0"
+          :class="esFilaReferencia(claveFilaAgenda(fila)) ? 'relative z-10 shadow-[inset_0_1px_0_rgba(37,99,235,0.25),inset_0_-1px_0_rgba(37,99,235,0.25)]' : ''"
+          :data-hora="fila.tipo === 'horario' ? fila.hora : undefined"
+        >
+          <template v-if="fila.tipo === 'turno'">
+            <button
+              type="button"
+              class="sticky left-0 z-10 flex items-center justify-center bg-blue-900 px-2 py-2 text-white transition hover:bg-blue-950 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-300"
+              :aria-expanded="turnosExpandidos[fila.id]"
+              :aria-label="`${turnosExpandidos[fila.id] ? 'Colapsar' : 'Expandir'} turno ${fila.etiqueta}`"
+              @click="alternarTurno(fila.id)"
+            >
+              <Icono nombre="siguiente" class="h-4 w-4 transition-transform duration-200" :class="turnosExpandidos[fila.id] ? 'rotate-90' : ''" :grosor="2.4" />
+            </button>
+            <button
+              type="button"
+              class="col-span-7 flex items-center justify-between border-l border-blue-800 bg-blue-900 px-3 py-2 text-left text-white transition hover:bg-blue-950 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-300"
+              :aria-expanded="turnosExpandidos[fila.id]"
+              @click="alternarTurno(fila.id)"
+            >
+              <span class="flex items-center gap-2">
+                <span class="text-xs font-black uppercase tracking-[0.18em]">{{ fila.etiqueta }}</span>
+                <span class="rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-bold text-blue-50">{{ fila.detalle }}</span>
+              </span>
+              <span class="text-[10px] font-black uppercase tracking-[0.16em] text-blue-100">{{ turnosExpandidos[fila.id] ? 'Ocultar' : 'Mostrar' }}</span>
+            </button>
+          </template>
+
+          <template v-if="fila.tipo === 'pausa'">
+            <div class="sticky left-0 z-10 px-2 py-1 text-[10px] font-black uppercase tracking-wide" :class="esFilaReferencia(claveFilaAgenda(fila)) ? 'bg-blue-700 text-white shadow-inner ring-1 ring-inset ring-blue-400' : 'bg-slate-100 text-slate-500'">{{ fila.etiqueta }}</div>
+            <div class="col-span-7 border-l px-2 py-1 text-center text-[10px] font-bold" :class="esFilaReferencia(claveFilaAgenda(fila)) ? 'border-blue-200 bg-blue-100/90 text-blue-800 ring-1 ring-inset ring-blue-300' : 'border-slate-200 bg-slate-50 text-slate-500'">
+              {{ fila.detalle }}
+              <span v-if="esFilaReferencia(claveFilaAgenda(fila))" class="ml-2 rounded-full bg-blue-700 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-[0.14em] text-white">Ahora</span>
+            </div>
+          </template>
+
+          <template v-else-if="fila.tipo === 'horario'">
+            <div class="sticky left-0 z-10 px-2 py-1 text-[11px] font-bold" :class="esFilaHoraReferencia(fila.hora) ? 'bg-blue-700 text-white shadow-inner ring-1 ring-inset ring-blue-400' : 'bg-white text-blue-700'">{{ fila.hora }}</div>
+            <div
+              v-for="dia in diasSemana"
+              :key="`${dia.iso}-${fila.hora}`"
+              class="min-h-7 border-l border-blue-50 p-0.5 text-left align-top transition"
+              :class="[
+                esHoy(dia.iso) ? 'bg-blue-50/80 ring-1 ring-inset ring-blue-200' : 'bg-white/70',
+                esFilaPasada(dia.iso, fila.hora) ? 'bg-slate-50 text-slate-400' : '',
+                esFilaHoraReferencia(fila.hora) ? 'bg-blue-100/90 ring-1 ring-inset ring-blue-300' : '',
+              ]"
+            >
+              <div v-if="subslotsFila(fila.hora).length === 0">
+                <button
+                  v-for="reserva in reservasEnHorario(dia.iso, fila.hora)"
+                  :key="reserva.id"
+                  type="button"
+                  class="group relative mb-0.5 flex h-4 w-full items-center gap-1 rounded-full border px-1 text-left text-[10px] font-black shadow-sm transition hover:z-20 hover:-translate-y-0.5 focus:z-20 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                  :class="esEstadoTerminal(reserva.estado) ? 'line-through opacity-70' : ''"
+                  :style="estiloReservaAgenda(reserva)"
+                  :aria-label="`${descripcionReserva(reserva)} a las ${horaReserva(reserva)}`"
+                  :title="`${descripcionReserva(reserva)} a las ${horaReserva(reserva)}`"
+                  @click="$emit('abrirDetalleReserva', reserva.id)"
+                >
+                  <span class="h-2 w-2 shrink-0 rounded-full ring-1 ring-white/70" :class="clasesBadgeEstadoReserva(reserva.estado)" :aria-label="etiquetaEstado(reserva.estado)"></span>
+                  <span class="shrink-0 text-[8px] leading-none opacity-80" aria-hidden="true">{{ horaReserva(reserva) }}</span>
+                  <span class="min-w-0 truncate leading-none" aria-hidden="true">
+                    {{ nombrePacienteAgenda(reserva.pacienteId).slice(0, 2).toUpperCase() }}
+                  </span>
+                  <span class="pointer-events-none absolute left-1/2 top-full z-30 mt-1 hidden w-max max-w-64 -translate-x-1/2 rounded-xl bg-slate-950 px-2 py-1 text-[11px] font-bold leading-snug text-white shadow-xl group-hover:block group-focus:block">
+                    {{ descripcionReserva(reserva) }} a las {{ horaReserva(reserva) }}
+                  </span>
+                </button>
+
+                <div v-if="reservasEnHorario(dia.iso, fila.hora).length === 0" class="flex min-h-4 w-full items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-100/70 px-1 text-[10px] font-semibold leading-none text-slate-300" :aria-label="`Inicio no válido el ${dia.iso} a las ${fila.hora} para intervalo de ${intervaloMinutos} minutos`" title="Inicio no válido para este intervalo">
+                  <span aria-hidden="true">-</span>
+                </div>
+              </div>
+
+              <template v-else>
+                <div v-for="horaSubslot in subslotsFila(fila.hora)" :key="`${dia.iso}-${horaSubslot}`" class="mb-0.5 last:mb-0">
+                  <button
+                    v-for="reserva in reservasEnSubslot(dia.iso, fila.hora, horaSubslot)"
+                    :key="reserva.id"
+                    type="button"
+                    class="group relative mb-0.5 flex h-4 w-full items-center gap-1 rounded-full border px-1 text-left text-[10px] font-black shadow-sm transition hover:z-20 hover:-translate-y-0.5 focus:z-20 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                    :class="esEstadoTerminal(reserva.estado) ? 'line-through opacity-70' : ''"
+                    :style="estiloReservaAgenda(reserva)"
+                    :aria-label="`${descripcionReserva(reserva)} a las ${horaSubslot}`"
+                    :title="`${descripcionReserva(reserva)} a las ${horaSubslot}`"
+                    @click="$emit('abrirDetalleReserva', reserva.id)"
+                  >
+                    <span class="h-2 w-2 shrink-0 rounded-full ring-1 ring-white/70" :class="clasesBadgeEstadoReserva(reserva.estado)" :aria-label="etiquetaEstado(reserva.estado)"></span>
+                    <span class="shrink-0 text-[8px] leading-none opacity-80" aria-hidden="true">{{ horaSubslot }}</span>
+                    <span class="min-w-0 truncate leading-none" aria-hidden="true">
+                      {{ nombrePacienteAgenda(reserva.pacienteId).slice(0, 2).toUpperCase() }}
+                    </span>
+                    <span class="pointer-events-none absolute left-1/2 top-full z-30 mt-1 hidden w-max max-w-64 -translate-x-1/2 rounded-xl bg-slate-950 px-2 py-1 text-[11px] font-bold leading-snug text-white shadow-xl group-hover:block group-focus:block">
+                      {{ descripcionReserva(reserva) }} a las {{ horaSubslot }}
+                    </span>
+                  </button>
+
+                  <button
+                    v-if="reservasEnSubslot(dia.iso, fila.hora, horaSubslot).length === 0"
+                    type="button"
+                    class="flex min-h-4 w-full items-center justify-center gap-1 rounded-lg border border-dashed px-1 text-[10px] font-semibold leading-none transition focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                    :class="esSlotPasado(dia.iso, horaSubslot) ? 'cursor-not-allowed border-slate-200 bg-slate-100/70 opacity-60 hover:bg-slate-100/70' : 'border-blue-100 text-blue-300 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600'"
+                    :aria-label="`Crear reserva el ${dia.iso} a las ${horaSubslot}`"
+                    :aria-disabled="esSlotPasado(dia.iso, horaSubslot)"
+                    :title="esSlotPasado(dia.iso, horaSubslot) ? 'Horario pasado' : `Crear reserva ${horaSubslot}`"
+                    @click="$emit('abrirModalReserva', dia.iso, horaSubslot)"
+                  >
+                    <span v-if="intervaloMinutos === 15" class="text-[8px] leading-none" aria-hidden="true">{{ horaSubslot }}</span>
+                    <span class="inline-flex h-3.5 min-w-3.5 items-center justify-center rounded-full text-xs leading-none" aria-hidden="true">+</span>
+                  </button>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>

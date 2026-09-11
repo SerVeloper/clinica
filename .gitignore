@@ -1,0 +1,68 @@
+# Dependencias y salidas generadas (en cualquier aplicación)
+node_modules/
+dist/
+dist-ssr/
+build/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+
+# Cachés y temporales
+.cache/
+.npm/
+.vite/
+.vite-temp/
+.eslintcache
+.stylelintcache
+tmp/
+temp/
+logs/
+*.log
+*.log.*
+
+# Entornos privados; los ejemplos sí se versionan
+.env
+.env.*
+!.env.example
+
+# Respaldos y datos locales: no ignorar *.sql ni assets genéricos
+backup/
+backups/
+respaldos/
+dumps/
+pgdata/
+.postgres/
+**/data/local/
+**/datos/local/
+*.bak
+*.backup
+*.dump
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+*.sqlite3-journal
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3-wal
+*.sqlite3-shm
+
+# Claves privadas y almacenes de credenciales
+.ssh/
+secrets/
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+id_rsa
+id_ed25519
+id_ecdsa
+id_dsa
+
+# Archivos locales de editores y del sistema
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
