@@ -16,6 +16,7 @@ import {
   Phone,
   Settings,
   Sun,
+  User,
   Users,
 } from '@lucide/vue'
 
@@ -31,6 +32,7 @@ export const iconos = {
   mensaje: MessageCircle,
   monitor: Monitor,
   luna: Moon,
+  perfil: User,
   sol: Sun,
   operaciones: Activity,
   profesional: BriefcaseBusiness,

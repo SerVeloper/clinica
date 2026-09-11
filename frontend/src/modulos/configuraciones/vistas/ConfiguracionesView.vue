@@ -1,26 +1,12 @@
 <script setup lang="ts">
 import type { Profesional } from '../../profesionales/tipos/profesional'
 import type { CrearUsuarioPayload, Usuario } from '../../usuarios/tipos/usuario'
-import Icono from '../../../compartido/componentes/Icono.vue'
-import type { NombreIcono } from '../../../compartido/iconos/iconos'
 
 // Subsecciones de configuración global de la clínica.
 // Para agregar una futura sección (ej: notificaciones, facturación): 1) sumar
-// su id al tipo `IdSeccionConfiguracion`, 2) registrarla acá con
-// etiqueta/icono, 3) agregar su bloque v-if en el template.
-export type IdSeccionConfiguracion = 'usuarios' | 'clinica' | 'horarios'
-
-interface SeccionConfiguracion {
-  id: IdSeccionConfiguracion
-  etiqueta: string
-  icono: NombreIcono
-}
-
-const secciones: SeccionConfiguracion[] = [
-  { id: 'usuarios', etiqueta: 'Usuarios', icono: 'usuarios' },
-  { id: 'clinica', etiqueta: 'Clínica', icono: 'clinica' },
-  { id: 'horarios', etiqueta: 'Horarios', icono: 'horario' },
-]
+// su id al tipo `IdSeccionConfiguracion`, 2) agregar su bloque v-if en el
+// template. La navegación entre secciones la provee el sidebar.
+export type IdSeccionConfiguracion = 'perfil' | 'usuarios' | 'clinica' | 'horarios'
 
 const props = defineProps<{
   usuarios: Usuario[]
@@ -33,51 +19,13 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   guardarUsuario: []
-  cambiarSubSeccion: [id: IdSeccionConfiguracion]
 }>()
-
-function manejarTeclaTab(index: number, event: KeyboardEvent) {
-  if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return
-  event.preventDefault()
-  const direccion = event.key === 'ArrowRight' ? 1 : -1
-  const siguiente = secciones[(index + direccion + secciones.length) % secciones.length]
-  emit('cambiarSubSeccion', siguiente.id)
-  document.getElementById(`tab-${siguiente.id}`)?.focus()
-}
 </script>
 
 <template>
   <section class="grid gap-6">
-    <div>
-      <h1 class="text-2xl font-black text-texto">Configuraciones</h1>
-      <p class="mt-1 text-sm text-texto-secundario">Configuración global de la clínica.</p>
-
-      <div role="tablist" aria-label="Secciones de configuración" class="mt-4 flex flex-wrap gap-2">
-        <button
-          v-for="(seccion, index) in secciones"
-          :id="`tab-${seccion.id}`"
-          :key="seccion.id"
-          type="button"
-          role="tab"
-          :aria-selected="subSeccionActiva === seccion.id"
-          :aria-controls="`panel-${seccion.id}`"
-          :tabindex="subSeccionActiva === seccion.id ? 0 : -1"
-          class="flex min-h-10 items-center gap-2 rounded-full border px-4 py-2 text-sm font-black transition focus-visible:ring-2 focus-visible:ring-foco"
-          :class="subSeccionActiva === seccion.id ? 'border-control bg-accion text-sobre-accion shadow-lg shadow-sombra/20' : 'border-control bg-superficie text-texto-secundario hover:bg-secundaria hover:text-enlace'"
-          @click="$emit('cambiarSubSeccion', seccion.id)"
-          @keydown="manejarTeclaTab(index, $event)"
-        >
-          <Icono :nombre="seccion.icono" class="h-4 w-4" />
-          {{ seccion.etiqueta }}
-        </button>
-      </div>
-    </div>
-
     <div
       v-if="subSeccionActiva === 'usuarios'"
-      id="panel-usuarios"
-      role="tabpanel"
-      aria-labelledby="tab-usuarios"
       class="rounded-[2rem] border border-borde bg-superficie p-5 shadow-xl shadow-sombra/5"
     >
       <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -158,9 +106,6 @@ function manejarTeclaTab(index: number, event: KeyboardEvent) {
     <!-- Clínica: datos globales de la clínica (nombre, contacto, logo) -->
     <div
       v-if="subSeccionActiva === 'clinica'"
-      id="panel-clinica"
-      role="tabpanel"
-      aria-labelledby="tab-clinica"
       class="rounded-[2rem] border border-borde bg-superficie p-5 shadow-xl shadow-sombra/5"
     >
       <h2 class="text-xl font-black text-texto">Clínica</h2>
@@ -173,13 +118,21 @@ function manejarTeclaTab(index: number, event: KeyboardEvent) {
     <!-- Horarios: horarios de atención de la clínica -->
     <div
       v-if="subSeccionActiva === 'horarios'"
-      id="panel-horarios"
-      role="tabpanel"
-      aria-labelledby="tab-horarios"
       class="rounded-[2rem] border border-borde bg-superficie p-5 shadow-xl shadow-sombra/5"
     >
       <h2 class="text-xl font-black text-texto">Horarios</h2>
       <p class="mt-1 text-sm text-texto-secundario">Horarios de atención de la clínica y de cada especialidad.</p>
+      <p class="mt-5 rounded-3xl border border-dashed border-borde p-4 text-sm font-semibold text-texto-secundario">
+        Esta sección se habilita en una próxima funcionalidad.
+      </p>
+    </div>
+  <!-- Perfil: datos del usuario autenticado -->
+    <div
+      v-if="subSeccionActiva === 'perfil'"
+      class="rounded-[2rem] border border-borde bg-superficie p-5 shadow-xl shadow-sombra/5"
+    >
+      <h2 class="text-xl font-black text-texto">Perfil</h2>
+      <p class="mt-1 text-sm text-texto-secundario">Datos del usuario autenticado.</p>
       <p class="mt-5 rounded-3xl border border-dashed border-borde p-4 text-sm font-semibold text-texto-secundario">
         Esta sección se habilita en una próxima funcionalidad.
       </p>

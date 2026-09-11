@@ -6,6 +6,7 @@ export type VistaActiva =
   | 'profesionales'
   | 'especialidades'
   | 'configuraciones'
+  | 'configuraciones-perfil'
   | 'configuraciones-usuarios'
   | 'configuraciones-clinica'
   | 'configuraciones-horarios'
