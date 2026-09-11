@@ -1,3 +1,5 @@
+import { leerSesion } from './almacenamiento-sesion'
+
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api'
 
 type MetodoHttp = 'GET' | 'POST' | 'PATCH'
@@ -15,7 +17,7 @@ export async function clienteApi<T>(ruta: string, opciones: OpcionesPeticion = {
     if (valor !== undefined && valor !== '') url.searchParams.set(clave, String(valor))
   })
 
-  const token = localStorage.getItem('clinica_token')
+  const token = leerSesion('clinica_token')
   const headers = new Headers()
   if (opciones.cuerpo) headers.set('Content-Type', 'application/json')
   if (token) headers.set('Authorization', `Bearer ${token}`)

@@ -46,30 +46,30 @@ defineEmits<{
 
 <template>
   <div>
-    <section class="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-xl shadow-blue-900/5">
+    <section class="rounded-[2rem] border border-borde bg-superficie p-5 shadow-xl shadow-sombra/5">
       <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 class="text-xl font-black text-blue-950">Profesionales</h2>
-          <p class="text-sm text-slate-500">{{ respuesta.total }} integrantes encontrados. Los inactivos quedan para historial, pero no se ofrecen en nuevas reservas.</p>
+          <h2 class="text-xl font-black text-texto">Profesionales</h2>
+          <p class="text-sm text-texto-secundario">{{ respuesta.total }} integrantes encontrados. Los inactivos quedan para historial, pero no se ofrecen en nuevas reservas.</p>
         </div>
-        <button type="button" class="rounded-2xl bg-blue-700 px-4 py-2 font-bold text-white transition hover:bg-blue-800" @click="$emit('abrirAlta')">Agregar profesional</button>
+        <button type="button" class="rounded-2xl bg-accion px-4 py-2 font-bold text-sobre-accion transition hover:bg-accion-hover" @click="$emit('abrirAlta')">Agregar profesional</button>
       </div>
       <form class="mt-4 grid gap-2 md:grid-cols-[minmax(0,1fr)_220px_180px_auto]" @submit.prevent="$emit('buscar')">
-        <input v-model="filtros.buscar" class="rounded-2xl border border-blue-100 px-3 py-2" placeholder="Buscar por nombre, apellido o teléfono" />
-        <select v-model="filtros.especialidadId" class="rounded-2xl border border-blue-100 bg-white px-3 py-2">
+        <input v-model="filtros.buscar" class="rounded-2xl border border-control px-3 py-2" placeholder="Buscar por nombre, apellido o teléfono" />
+        <select v-model="filtros.especialidadId" class="rounded-2xl border border-control bg-superficie px-3 py-2">
           <option value="">Todas las especialidades</option>
           <option v-for="especialidad in especialidades" :key="especialidad.id" :value="especialidad.id">{{ especialidad.nombre }}</option>
         </select>
-        <select v-model="filtros.activo" class="rounded-2xl border border-blue-100 bg-white px-3 py-2">
+        <select v-model="filtros.activo" class="rounded-2xl border border-control bg-superficie px-3 py-2">
           <option value="">Todos</option>
           <option value="true">Activos</option>
           <option value="false">Inactivos</option>
         </select>
-        <button :disabled="cargando" class="rounded-2xl bg-blue-700 px-4 py-2 font-bold text-white transition hover:bg-blue-800 disabled:opacity-60">Buscar</button>
+        <button :disabled="cargando" class="rounded-2xl bg-accion px-4 py-2 font-bold text-sobre-accion transition hover:bg-accion-hover disabled:opacity-60">Buscar</button>
       </form>
       <div class="mt-5 overflow-x-auto">
         <table class="w-full min-w-[920px] text-left text-sm">
-          <thead class="bg-blue-50 text-xs font-black uppercase tracking-wide text-blue-700">
+          <thead class="bg-secundaria text-xs font-black uppercase tracking-wide text-enlace">
             <tr>
                <th class="rounded-l-2xl px-4 py-3">Apellido</th>
                <th class="px-4 py-3">Nombre</th>
@@ -79,89 +79,89 @@ defineEmits<{
               <th class="rounded-r-2xl px-4 py-3 text-right">Acciones</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-blue-50">
+          <tbody class="divide-y divide-borde">
             <tr v-for="profesional in respuesta.datos" :key="profesional.id">
-              <td class="px-4 py-3 font-black text-blue-950">{{ profesional.apellido }}</td>
-              <td class="px-4 py-3 text-slate-700">{{ profesional.nombre }}</td>
-              <td class="px-4 py-3 text-slate-700">{{ profesional.telefono || 'Sin teléfono' }}</td>
-              <td class="px-4 py-3 text-slate-700">{{ nombreEspecialidad(profesional.especialidadId) }}</td>
-              <td class="px-4 py-3"><span :class="profesional.activo ? 'bg-emerald-100 text-emerald-800 ring-emerald-200' : 'bg-slate-200 text-slate-600 ring-slate-300'" class="rounded-full px-3 py-1 text-xs font-black ring-1">{{ profesional.activo ? 'Activo' : 'Inactivo' }}</span></td>
+              <td class="px-4 py-3 font-black text-texto">{{ profesional.apellido }}</td>
+              <td class="px-4 py-3 text-texto-secundario">{{ profesional.nombre }}</td>
+              <td class="px-4 py-3 text-texto-secundario">{{ profesional.telefono || 'Sin teléfono' }}</td>
+              <td class="px-4 py-3 text-texto-secundario">{{ nombreEspecialidad(profesional.especialidadId) }}</td>
+              <td class="px-4 py-3"><span :class="profesional.activo ? 'bg-exito-suave text-exito-texto ring-exito-borde' : 'bg-deshabilitado text-texto-deshabilitado ring-control'" class="rounded-full px-3 py-1 text-xs font-black ring-1">{{ profesional.activo ? 'Activo' : 'Inactivo' }}</span></td>
               <td class="px-4 py-3 text-right">
                 <div class="flex justify-end gap-2">
-                  <a v-if="enlaceWhatsapp(profesional.telefono)" :href="enlaceWhatsapp(profesional.telefono) ?? undefined" target="_blank" rel="noopener noreferrer" class="rounded-xl border border-emerald-100 p-2 text-emerald-700 transition hover:bg-emerald-50" title="Contactar por WhatsApp" aria-label="Contactar profesional por WhatsApp">
+                  <a v-if="enlaceWhatsapp(profesional.telefono)" :href="enlaceWhatsapp(profesional.telefono) ?? undefined" target="_blank" rel="noopener noreferrer" class="rounded-xl border border-exito-borde p-2 text-exito-texto transition hover:bg-exito-fondo" title="Contactar por WhatsApp" aria-label="Contactar profesional por WhatsApp">
                     <Icono nombre="mensaje" class="h-4 w-4" />
                   </a>
-                  <button v-else type="button" disabled class="rounded-xl border border-slate-100 p-2 text-slate-300" title="Sin teléfono para WhatsApp" aria-label="Sin teléfono para WhatsApp">
+                  <button v-else type="button" disabled class="rounded-xl border border-borde bg-deshabilitado p-2 text-texto-deshabilitado" title="Sin teléfono para WhatsApp" aria-label="Sin teléfono para WhatsApp">
                     <Icono nombre="mensaje" class="h-4 w-4" />
                   </button>
-                  <a v-if="enlaceTelefono(profesional.telefono)" :href="enlaceTelefono(profesional.telefono) ?? undefined" class="rounded-xl border border-blue-100 p-2 text-blue-700 transition hover:bg-blue-50" title="Llamar profesional" aria-label="Llamar profesional">
+                  <a v-if="enlaceTelefono(profesional.telefono)" :href="enlaceTelefono(profesional.telefono) ?? undefined" class="rounded-xl border border-control p-2 text-enlace transition hover:bg-secundaria" title="Llamar profesional" aria-label="Llamar profesional">
                     <Icono nombre="telefono" class="h-4 w-4" />
                   </a>
-                  <button v-else type="button" disabled class="rounded-xl border border-slate-100 p-2 text-slate-300" title="Sin teléfono para llamar" aria-label="Sin teléfono para llamar">
+                  <button v-else type="button" disabled class="rounded-xl border border-borde bg-deshabilitado p-2 text-texto-deshabilitado" title="Sin teléfono para llamar" aria-label="Sin teléfono para llamar">
                     <Icono nombre="telefono" class="h-4 w-4" />
                   </button>
-                  <button type="button" class="rounded-xl border border-blue-100 p-2 text-blue-700 transition hover:bg-blue-50" title="Editar profesional" aria-label="Editar profesional" @click="$emit('iniciarEdicion', profesional)">
+                  <button type="button" class="rounded-xl border border-control p-2 text-enlace transition hover:bg-secundaria" title="Editar profesional" aria-label="Editar profesional" @click="$emit('iniciarEdicion', profesional)">
                     <Icono nombre="editar" class="h-4 w-4" />
                   </button>
-                  <button type="button" :disabled="cargando" :class="profesional.activo ? 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100' : 'border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'" class="rounded-xl border p-2 transition disabled:opacity-60" :title="profesional.activo ? 'Desactivar profesional' : 'Activar profesional'" :aria-label="profesional.activo ? 'Desactivar profesional' : 'Activar profesional'" @click="$emit('cambiarEstado', profesional)">
+                  <button type="button" :disabled="cargando" :class="profesional.activo ? 'border-advertencia-borde bg-advertencia-fondo text-advertencia-texto hover:bg-advertencia-suave' : 'border-exito-borde bg-exito-fondo text-exito-texto hover:bg-exito-suave'" class="rounded-xl border p-2 transition disabled:opacity-60" :title="profesional.activo ? 'Desactivar profesional' : 'Activar profesional'" :aria-label="profesional.activo ? 'Desactivar profesional' : 'Activar profesional'" @click="$emit('cambiarEstado', profesional)">
                     <Icono :nombre="profesional.activo ? 'desactivar' : 'activar'" class="h-4 w-4" />
                   </button>
                 </div>
               </td>
             </tr>
-            <tr v-if="respuesta.datos.length === 0"><td colspan="6" class="px-4 py-8 text-center font-semibold text-slate-500">No hay profesionales para los filtros aplicados.</td></tr>
+            <tr v-if="respuesta.datos.length === 0"><td colspan="6" class="px-4 py-8 text-center font-semibold text-texto-secundario">No hay profesionales para los filtros aplicados.</td></tr>
           </tbody>
         </table>
       </div>
-      <footer class="mt-4 flex flex-col gap-3 border-t border-blue-50 pt-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+      <footer class="mt-4 flex flex-col gap-3 border-t border-borde pt-4 text-sm text-texto-secundario sm:flex-row sm:items-center sm:justify-between">
         <span>Página {{ respuesta.pagina }} de {{ respuesta.totalPaginas }}</span>
         <div class="flex gap-2">
-          <button type="button" :disabled="cargando || respuesta.pagina <= 1" class="rounded-xl border border-blue-100 px-3 py-2 font-bold text-blue-700 disabled:opacity-50" @click="$emit('cambiarPagina', respuesta.pagina - 1)">Anterior</button>
-          <button type="button" :disabled="cargando || respuesta.pagina >= respuesta.totalPaginas" class="rounded-xl border border-blue-100 px-3 py-2 font-bold text-blue-700 disabled:opacity-50" @click="$emit('cambiarPagina', respuesta.pagina + 1)">Siguiente</button>
+          <button type="button" :disabled="cargando || respuesta.pagina <= 1" class="rounded-xl border border-control px-3 py-2 font-bold text-enlace disabled:opacity-50" @click="$emit('cambiarPagina', respuesta.pagina - 1)">Anterior</button>
+          <button type="button" :disabled="cargando || respuesta.pagina >= respuesta.totalPaginas" class="rounded-xl border border-control px-3 py-2 font-bold text-enlace disabled:opacity-50" @click="$emit('cambiarPagina', respuesta.pagina + 1)">Siguiente</button>
         </div>
       </footer>
     </section>
 
     <ModalBase :abierto="modalAltaAbierto" titulo="Alta de profesional" descripcion="Asociá cada profesional a una especialidad activa." @cerrar="$emit('cerrarAlta')">
       <form id="form-alta-profesional" class="grid gap-3" @submit.prevent="$emit('guardarProfesional')">
-        <label class="block"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">Nombre</span><input v-model="formularioProfesional.nombre" required class="mt-1 w-full rounded-2xl border border-blue-100 px-3 py-2" /></label>
-        <label class="block"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">Apellido</span><input v-model="formularioProfesional.apellido" required class="mt-1 w-full rounded-2xl border border-blue-100 px-3 py-2" /></label>
-        <label class="block"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">Teléfono</span><input v-model="formularioProfesional.telefono" required class="mt-1 w-full rounded-2xl border border-blue-100 px-3 py-2" /></label>
+        <label class="block"><span class="text-xs font-bold uppercase tracking-wide text-texto-secundario">Nombre</span><input v-model="formularioProfesional.nombre" required class="mt-1 w-full rounded-2xl border border-control px-3 py-2" /></label>
+        <label class="block"><span class="text-xs font-bold uppercase tracking-wide text-texto-secundario">Apellido</span><input v-model="formularioProfesional.apellido" required class="mt-1 w-full rounded-2xl border border-control px-3 py-2" /></label>
+        <label class="block"><span class="text-xs font-bold uppercase tracking-wide text-texto-secundario">Teléfono</span><input v-model="formularioProfesional.telefono" required class="mt-1 w-full rounded-2xl border border-control px-3 py-2" /></label>
         <label class="block">
-          <span class="text-xs font-bold uppercase tracking-wide text-slate-500">Especialidad</span>
-          <select v-model="formularioProfesional.especialidadId" required class="mt-1 w-full rounded-2xl border border-blue-100 bg-white px-3 py-2">
+          <span class="text-xs font-bold uppercase tracking-wide text-texto-secundario">Especialidad</span>
+          <select v-model="formularioProfesional.especialidadId" required class="mt-1 w-full rounded-2xl border border-control bg-superficie px-3 py-2">
             <option value="">Seleccionar especialidad</option>
             <option v-for="especialidad in especialidadesDisponibles" :key="especialidad.id" :value="especialidad.id">{{ especialidad.nombre }}</option>
           </select>
-          <span v-if="especialidadesDisponibles.length === 0" class="mt-1 block text-xs font-semibold text-amber-700">No hay especialidades activas para asociar nuevos profesionales.</span>
+          <span v-if="especialidadesDisponibles.length === 0" class="mt-1 block text-xs font-semibold text-advertencia-texto">No hay especialidades activas para asociar nuevos profesionales.</span>
         </label>
       </form>
       <template #footer>
         <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <button type="button" class="rounded-2xl border border-blue-100 px-4 py-3 font-bold text-blue-700" @click="$emit('cerrarAlta')">Cancelar</button>
-          <button form="form-alta-profesional" :disabled="cargando" class="rounded-2xl bg-blue-700 px-4 py-3 font-bold text-white transition hover:bg-blue-800 disabled:opacity-60">Guardar profesional</button>
+          <button type="button" class="rounded-2xl border border-control px-4 py-3 font-bold text-enlace" @click="$emit('cerrarAlta')">Cancelar</button>
+          <button form="form-alta-profesional" :disabled="cargando" class="rounded-2xl bg-accion px-4 py-3 font-bold text-sobre-accion transition hover:bg-accion-hover disabled:opacity-60">Guardar profesional</button>
         </div>
       </template>
     </ModalBase>
 
     <ModalBase :abierto="Boolean(profesionalEditandoId)" titulo="Editar profesional" descripcion="Actualizá los datos del profesional sin editar la fila inline." @cerrar="$emit('cancelarEdicion')">
       <form id="form-edicion-profesional" class="grid gap-3" @submit.prevent="$emit('guardarEdicion')">
-        <label class="block"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">Nombre</span><input v-model="formularioEdicionProfesional.nombre" required minlength="2" class="mt-1 w-full rounded-2xl border border-blue-100 px-3 py-2" /></label>
-        <label class="block"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">Apellido</span><input v-model="formularioEdicionProfesional.apellido" required minlength="2" class="mt-1 w-full rounded-2xl border border-blue-100 px-3 py-2" /></label>
-        <label class="block"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">Teléfono</span><input v-model="formularioEdicionProfesional.telefono" required class="mt-1 w-full rounded-2xl border border-blue-100 px-3 py-2" /></label>
+        <label class="block"><span class="text-xs font-bold uppercase tracking-wide text-texto-secundario">Nombre</span><input v-model="formularioEdicionProfesional.nombre" required minlength="2" class="mt-1 w-full rounded-2xl border border-control px-3 py-2" /></label>
+        <label class="block"><span class="text-xs font-bold uppercase tracking-wide text-texto-secundario">Apellido</span><input v-model="formularioEdicionProfesional.apellido" required minlength="2" class="mt-1 w-full rounded-2xl border border-control px-3 py-2" /></label>
+        <label class="block"><span class="text-xs font-bold uppercase tracking-wide text-texto-secundario">Teléfono</span><input v-model="formularioEdicionProfesional.telefono" required class="mt-1 w-full rounded-2xl border border-control px-3 py-2" /></label>
         <label class="block">
-          <span class="text-xs font-bold uppercase tracking-wide text-slate-500">Especialidad</span>
-          <select v-model="formularioEdicionProfesional.especialidadId" required class="mt-1 w-full rounded-2xl border border-blue-100 bg-white px-3 py-2">
+          <span class="text-xs font-bold uppercase tracking-wide text-texto-secundario">Especialidad</span>
+          <select v-model="formularioEdicionProfesional.especialidadId" required class="mt-1 w-full rounded-2xl border border-control bg-superficie px-3 py-2">
             <option value="">Seleccionar especialidad</option>
             <option v-for="especialidad in especialidadesDisponibles" :key="especialidad.id" :value="especialidad.id">{{ especialidad.nombre }}</option>
           </select>
-          <span v-if="especialidadesDisponibles.length === 0" class="mt-1 block text-xs font-semibold text-amber-700">No hay especialidades activas para asociar este profesional.</span>
+          <span v-if="especialidadesDisponibles.length === 0" class="mt-1 block text-xs font-semibold text-advertencia-texto">No hay especialidades activas para asociar este profesional.</span>
         </label>
       </form>
       <template #footer>
         <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <button type="button" class="rounded-2xl border border-blue-100 px-4 py-3 font-bold text-blue-700" @click="$emit('cancelarEdicion')">Cancelar</button>
-          <button form="form-edicion-profesional" :disabled="cargando || !formularioEdicionProfesional.nombre.trim() || !formularioEdicionProfesional.apellido.trim() || !formularioEdicionProfesional.telefono.trim() || !formularioEdicionProfesional.especialidadId" class="rounded-2xl bg-blue-700 px-4 py-3 font-bold text-white transition hover:bg-blue-800 disabled:opacity-60">Guardar cambios</button>
+          <button type="button" class="rounded-2xl border border-control px-4 py-3 font-bold text-enlace" @click="$emit('cancelarEdicion')">Cancelar</button>
+          <button form="form-edicion-profesional" :disabled="cargando || !formularioEdicionProfesional.nombre.trim() || !formularioEdicionProfesional.apellido.trim() || !formularioEdicionProfesional.telefono.trim() || !formularioEdicionProfesional.especialidadId" class="rounded-2xl bg-accion px-4 py-3 font-bold text-sobre-accion transition hover:bg-accion-hover disabled:opacity-60">Guardar cambios</button>
         </div>
       </template>
     </ModalBase>
