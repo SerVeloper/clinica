@@ -49,21 +49,21 @@ onUnmounted(() => {
 
 <template>
   <Teleport to="body">
-    <div v-if="abierto" class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-slate-950/50 p-4" role="dialog" aria-modal="true" :aria-labelledby="tituloId">
-      <div class="flex max-h-[calc(100vh-2rem)] w-full flex-col overflow-hidden rounded-[2rem] border border-blue-100 bg-white shadow-2xl shadow-slate-950/20" :class="ancho">
-        <header class="flex shrink-0 items-start justify-between gap-4 border-b border-blue-50 p-5 pb-4">
+    <div v-if="abierto" class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-overlay p-4" role="dialog" aria-modal="true" :aria-labelledby="tituloId">
+      <div class="flex max-h-[calc(100vh-2rem)] w-full flex-col overflow-hidden rounded-[2rem] border border-borde bg-superficie text-texto shadow-2xl shadow-sombra/20" :class="ancho">
+        <header class="flex shrink-0 items-start justify-between gap-4 border-b border-borde p-5 pb-4">
           <div>
-            <h2 :id="tituloId" class="text-xl font-black text-blue-950">{{ titulo }}</h2>
-            <p v-if="descripcion" class="mt-1 text-sm text-slate-500">{{ descripcion }}</p>
+            <h2 :id="tituloId" class="text-xl font-black text-texto">{{ titulo }}</h2>
+            <p v-if="descripcion" class="mt-1 text-sm text-texto-secundario">{{ descripcion }}</p>
           </div>
-          <button type="button" class="rounded-full border border-blue-100 px-3 py-1 text-sm font-black text-blue-700 transition hover:bg-blue-50" :aria-label="`Cerrar ${titulo}`" @click="$emit('cerrar')">x</button>
+          <button type="button" class="rounded-full border border-control px-3 py-1 text-sm font-black text-enlace transition hover:bg-secundaria" :aria-label="`Cerrar ${titulo}`" @click="$emit('cerrar')">x</button>
         </header>
 
         <div class="min-h-0 flex-1 overflow-y-auto p-5">
           <slot />
         </div>
 
-        <footer v-if="$slots.footer" class="shrink-0 border-t border-blue-50 bg-white p-4">
+        <footer v-if="$slots.footer" class="shrink-0 border-t border-borde bg-superficie p-4">
           <slot name="footer" />
         </footer>
       </div>

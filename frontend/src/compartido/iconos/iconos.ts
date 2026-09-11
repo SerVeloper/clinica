@@ -8,8 +8,11 @@ import {
   EyeOff,
   LogOut,
   MessageCircle,
+  Monitor,
+  Moon,
   Pencil,
   Phone,
+  Sun,
   Users,
 } from '@lucide/vue'
 
@@ -20,6 +23,9 @@ export const iconos = {
   editar: Pencil,
   especialidad: ClipboardList,
   mensaje: MessageCircle,
+  monitor: Monitor,
+  luna: Moon,
+  sol: Sun,
   operaciones: Activity,
   profesional: BriefcaseBusiness,
   salir: LogOut,
