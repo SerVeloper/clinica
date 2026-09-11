@@ -1,12 +1,13 @@
-import { Body, Controller, Get, Headers, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { mapearError } from '../../../../compartido/infraestructura/filtros/mapear-error';
+import { UsuarioActual } from '../../../../compartido/infraestructura/decorators/usuario-actual.decorator';
 import { ActualizarEstadoReservaCasoUso } from '../../aplicacion/casos-uso/actualizar-estado-reserva.caso-uso';
 import { CancelarReservaCasoUso } from '../../aplicacion/casos-uso/cancelar-reserva.caso-uso';
 import { CrearReservaCasoUso } from '../../aplicacion/casos-uso/crear-reserva.caso-uso';
 import { ListarReservasCasoUso } from '../../aplicacion/casos-uso/listar-reservas.caso-uso';
 import { ObtenerReservaCasoUso } from '../../aplicacion/casos-uso/obtener-reserva.caso-uso';
-import { AuthServicio } from '../../../usuarios/aplicacion/servicios/auth.servicio';
+import { UsuarioAutenticado } from '../../../usuarios/aplicacion/servicios/auth.servicio';
 import { ActualizarEstadoReservaDto } from '../../aplicacion/dtos/actualizar-estado-reserva.dto';
 import { CrearReservaDto } from '../../aplicacion/dtos/crear-reserva.dto';
 import { ListarReservasDto } from '../../aplicacion/dtos/listar-reservas.dto';
@@ -20,14 +21,12 @@ export class ReservasControlador {
     private readonly obtenerReserva: ObtenerReservaCasoUso,
     private readonly cancelarReserva: CancelarReservaCasoUso,
     private readonly actualizarEstadoReserva: ActualizarEstadoReservaCasoUso,
-    private readonly auth: AuthServicio,
   ) {}
 
   @Post()
   @ApiCreatedResponse({ description: 'Crea una reserva' })
-  async crear(@Headers('authorization') authorization: string | undefined, @Body() dto: CrearReservaDto) {
+  async crear(@UsuarioActual() usuario: UsuarioAutenticado, @Body() dto: CrearReservaDto) {
     try {
-      const usuario = await this.auth.obtenerUsuarioDesdeHeader(authorization);
       return await this.crearReserva.ejecutar(dto, usuario);
     } catch (error) {
       mapearError(error);

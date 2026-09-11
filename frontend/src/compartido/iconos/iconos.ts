@@ -1,10 +1,12 @@
 import {
   Activity,
   BriefcaseBusiness,
+  Building2,
   CalendarDays,
   Check,
   ChevronRight,
   ClipboardList,
+  Clock,
   EyeOff,
   LogOut,
   MessageCircle,
@@ -12,16 +14,20 @@ import {
   Moon,
   Pencil,
   Phone,
+  Settings,
   Sun,
   Users,
 } from '@lucide/vue'
 
 export const iconos = {
   activar: Check,
+  ajustes: Settings,
   calendario: CalendarDays,
+  clinica: Building2,
   desactivar: EyeOff,
   editar: Pencil,
   especialidad: ClipboardList,
+  horario: Clock,
   mensaje: MessageCircle,
   monitor: Monitor,
   luna: Moon,

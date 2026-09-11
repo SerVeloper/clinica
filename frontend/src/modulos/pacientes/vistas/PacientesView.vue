@@ -23,6 +23,7 @@ defineProps<{
   pacienteEstadoPendiente: Paciente | null
   modalAltaAbierto: boolean
   cargando: boolean
+  puedeCambiarEstado: boolean
 }>()
 
 defineEmits<{
@@ -95,7 +96,7 @@ defineEmits<{
                   <button type="button" class="rounded-xl border border-control p-2 text-enlace transition hover:bg-secundaria" title="Editar paciente" aria-label="Editar paciente" @click="$emit('iniciarEdicion', paciente)">
                     <Icono nombre="editar" class="h-4 w-4" />
                   </button>
-                  <button type="button" :disabled="cargando" :class="paciente.activo ? 'border-advertencia-borde bg-advertencia-fondo text-advertencia-texto hover:bg-advertencia-suave' : 'border-exito-borde bg-exito-fondo text-exito-texto hover:bg-exito-suave'" class="rounded-xl border p-2 transition disabled:opacity-60" :title="paciente.activo ? 'Desactivar paciente' : 'Activar paciente'" :aria-label="paciente.activo ? 'Desactivar paciente' : 'Activar paciente'" @click="$emit('cambiarEstado', paciente)">
+                  <button v-if="puedeCambiarEstado" type="button" :disabled="cargando" :class="paciente.activo ? 'border-advertencia-borde bg-advertencia-fondo text-advertencia-texto hover:bg-advertencia-suave' : 'border-exito-borde bg-exito-fondo text-exito-texto hover:bg-exito-suave'" class="rounded-xl border p-2 transition disabled:opacity-60" :title="paciente.activo ? 'Desactivar paciente' : 'Activar paciente'" :aria-label="paciente.activo ? 'Desactivar paciente' : 'Activar paciente'" @click="$emit('cambiarEstado', paciente)">
                     <Icono :nombre="paciente.activo ? 'desactivar' : 'activar'" class="h-4 w-4" />
                   </button>
                 </div>

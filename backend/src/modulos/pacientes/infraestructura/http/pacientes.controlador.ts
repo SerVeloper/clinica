@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { mapearError } from '../../../../compartido/infraestructura/filtros/mapear-error';
+import { Roles } from '../../../../compartido/infraestructura/decorators/roles.decorator';
 import { ActualizarPacienteCasoUso } from '../../aplicacion/casos-uso/actualizar-paciente.caso-uso';
 import { ActualizarEstadoPacienteCasoUso } from '../../aplicacion/casos-uso/actualizar-estado-paciente.caso-uso';
 import { CrearPacienteCasoUso } from '../../aplicacion/casos-uso/crear-paciente.caso-uso';
@@ -41,6 +42,7 @@ export class PacientesControlador {
   }
 
   @Patch(':id/estado')
+  @Roles('ADMIN')
   @ApiOkResponse({ description: 'Activa o desactiva un paciente' })
   async actualizarEstado(@Param('id') id: string, @Body() dto: ActualizarEstadoPacienteDto) {
     try {

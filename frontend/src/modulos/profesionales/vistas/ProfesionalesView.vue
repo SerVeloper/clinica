@@ -26,6 +26,7 @@ defineProps<{
   profesionalEstadoPendiente: Profesional | null
   modalAltaAbierto: boolean
   cargando: boolean
+  puedeGestionar: boolean
   nombreEspecialidad: (id: string) => string
 }>()
 
@@ -52,15 +53,15 @@ defineEmits<{
           <h2 class="text-xl font-black text-texto">Profesionales</h2>
           <p class="text-sm text-texto-secundario">{{ respuesta.total }} integrantes encontrados. Los inactivos quedan para historial, pero no se ofrecen en nuevas reservas.</p>
         </div>
-        <button type="button" class="rounded-2xl bg-accion px-4 py-2 font-bold text-sobre-accion transition hover:bg-accion-hover" @click="$emit('abrirAlta')">Agregar profesional</button>
+        <button v-if="puedeGestionar" type="button" class="rounded-2xl bg-accion px-4 py-2 font-bold text-sobre-accion transition hover:bg-accion-hover" @click="$emit('abrirAlta')">Agregar profesional</button>
       </div>
-      <form class="mt-4 grid gap-2 md:grid-cols-[minmax(0,1fr)_220px_180px_auto]" @submit.prevent="$emit('buscar')">
+      <form class="mt-4 grid gap-2" :class="puedeGestionar ? 'md:grid-cols-[minmax(0,1fr)_220px_180px_auto]' : 'md:grid-cols-[minmax(0,1fr)_220px_auto]'" @submit.prevent="$emit('buscar')">
         <input v-model="filtros.buscar" class="rounded-2xl border border-control px-3 py-2" placeholder="Buscar por nombre, apellido o teléfono" />
         <select v-model="filtros.especialidadId" class="rounded-2xl border border-control bg-superficie px-3 py-2">
           <option value="">Todas las especialidades</option>
           <option v-for="especialidad in especialidades" :key="especialidad.id" :value="especialidad.id">{{ especialidad.nombre }}</option>
         </select>
-        <select v-model="filtros.activo" class="rounded-2xl border border-control bg-superficie px-3 py-2">
+        <select v-if="puedeGestionar" v-model="filtros.activo" class="rounded-2xl border border-control bg-superficie px-3 py-2">
           <option value="">Todos</option>
           <option value="true">Activos</option>
           <option value="false">Inactivos</option>
@@ -100,10 +101,10 @@ defineEmits<{
                   <button v-else type="button" disabled class="rounded-xl border border-borde bg-deshabilitado p-2 text-texto-deshabilitado" title="Sin teléfono para llamar" aria-label="Sin teléfono para llamar">
                     <Icono nombre="telefono" class="h-4 w-4" />
                   </button>
-                  <button type="button" class="rounded-xl border border-control p-2 text-enlace transition hover:bg-secundaria" title="Editar profesional" aria-label="Editar profesional" @click="$emit('iniciarEdicion', profesional)">
+                  <button v-if="puedeGestionar" type="button" class="rounded-xl border border-control p-2 text-enlace transition hover:bg-secundaria" title="Editar profesional" aria-label="Editar profesional" @click="$emit('iniciarEdicion', profesional)">
                     <Icono nombre="editar" class="h-4 w-4" />
                   </button>
-                  <button type="button" :disabled="cargando" :class="profesional.activo ? 'border-advertencia-borde bg-advertencia-fondo text-advertencia-texto hover:bg-advertencia-suave' : 'border-exito-borde bg-exito-fondo text-exito-texto hover:bg-exito-suave'" class="rounded-xl border p-2 transition disabled:opacity-60" :title="profesional.activo ? 'Desactivar profesional' : 'Activar profesional'" :aria-label="profesional.activo ? 'Desactivar profesional' : 'Activar profesional'" @click="$emit('cambiarEstado', profesional)">
+                  <button v-if="puedeGestionar" type="button" :disabled="cargando" :class="profesional.activo ? 'border-advertencia-borde bg-advertencia-fondo text-advertencia-texto hover:bg-advertencia-suave' : 'border-exito-borde bg-exito-fondo text-exito-texto hover:bg-exito-suave'" class="rounded-xl border p-2 transition disabled:opacity-60" :title="profesional.activo ? 'Desactivar profesional' : 'Activar profesional'" :aria-label="profesional.activo ? 'Desactivar profesional' : 'Activar profesional'" @click="$emit('cambiarEstado', profesional)">
                     <Icono :nombre="profesional.activo ? 'desactivar' : 'activar'" class="h-4 w-4" />
                   </button>
                 </div>
