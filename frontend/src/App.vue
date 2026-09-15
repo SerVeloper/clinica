@@ -17,6 +17,7 @@ import ConfiguracionesView, { type IdSeccionConfiguracion } from './modulos/conf
 import { actualizarEstadoPaciente, actualizarPaciente, crearPaciente, listarPacientes, listarPacientesPaginado, type FiltrosPacientes } from './modulos/pacientes/servicios/pacientes-api'
 import type { Paciente } from './modulos/pacientes/tipos/paciente'
 import PacientesView from './modulos/pacientes/vistas/PacientesView.vue'
+import ReportesReservasView from './modulos/reportes/vistas/ReportesReservasView.vue'
 import { actualizarEstadoProfesional, actualizarProfesional, crearProfesional, listarProfesionales, listarProfesionalesPaginado, type FiltrosProfesionales } from './modulos/profesionales/servicios/profesionales-api'
 import type { Profesional } from './modulos/profesionales/tipos/profesional'
 import ProfesionalesView from './modulos/profesionales/vistas/ProfesionalesView.vue'
@@ -71,6 +72,7 @@ const configuracionAdmin: VistaNavegacion = {
     { id: 'pacientes', etiqueta: 'Pacientes', descripcion: 'Altas y listado', icono: 'users' },
     { id: 'profesionales', etiqueta: 'Profesionales', descripcion: 'Equipo clínico', icono: 'briefcase' },
     { id: 'especialidades', etiqueta: 'Especialidades', descripcion: 'Catálogo disponible', icono: 'clipboard' },
+    { id: 'reportes', etiqueta: 'Reportes', descripcion: 'Conteos de reservas', icono: 'reporte' },
     configuracionAdmin,
   ]
 
@@ -80,6 +82,7 @@ const vistas = computed<VistaNavegacion[]>(() => {
     todasLasVistas[0], // agenda
     todasLasVistas[1], // pacientes
     todasLasVistas[2], // profesionales
+    todasLasVistas[4], // reportes
     configuracionEspecialista,
   ]
 })
@@ -954,6 +957,14 @@ onMounted(() => {
         @confirmar-cambio-estado="confirmarCambioEstadoEspecialidad"
         @buscar="refrescarEspecialidadesPaginadas(1)"
         @cambiar-pagina="refrescarEspecialidadesPaginadas"
+      />
+
+      <ReportesReservasView
+        v-else-if="vistaActiva === 'reportes'"
+        :usuario="usuarioActual"
+        :especialidades="especialidades"
+        :profesionales="profesionales"
+        :mostrar-toast="mostrarToast"
       />
 
       <ConfiguracionesView

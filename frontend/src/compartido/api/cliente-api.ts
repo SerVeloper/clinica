@@ -36,3 +36,28 @@ export async function clienteApi<T>(ruta: string, opciones: OpcionesPeticion = {
 
   return respuesta.json() as Promise<T>
 }
+
+export async function descargarBlob(
+  ruta: string,
+  parametros: Record<string, string | number | boolean | undefined>,
+  token: string,
+): Promise<Blob> {
+  const url = new URL(`${API_URL}${ruta}`)
+
+  Object.entries(parametros).forEach(([clave, valor]) => {
+    if (valor !== undefined && valor !== '') url.searchParams.set(clave, String(valor))
+  })
+
+  const headers = new Headers()
+  if (token) headers.set('Authorization', `Bearer ${token}`)
+
+  const respuesta = await fetch(url, { method: 'GET', headers })
+
+  if (!respuesta.ok) {
+    const detalle = await respuesta.json().catch(() => null)
+    const mensaje = detalle?.message ?? 'Ocurrió un error al descargar el reporte'
+    throw new Error(Array.isArray(mensaje) ? mensaje.join(', ') : mensaje)
+  }
+
+  return respuesta.blob()
+}

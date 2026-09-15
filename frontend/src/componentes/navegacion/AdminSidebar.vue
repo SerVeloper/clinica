@@ -22,6 +22,7 @@ const iconosNavegacion = {
   briefcase: 'profesional',
   calendar: 'calendario',
   clipboard: 'especialidad',
+  reporte: 'reporte',
   users: 'usuarios',
 } satisfies Record<VistaNavegacion['icono'], NombreIcono>
 
