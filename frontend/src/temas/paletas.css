@@ -145,3 +145,37 @@ html[data-tema="oscuro"] {
   --especialidad-6-texto: #fef08a;
   --especialidad-confirmada-texto: #0f172a;
 }
+
+/* VueDatePicker consumiendo los roles semánticos del tema (claro y oscuro).
+   El popup viaja teleportado a <body>; estos selectores globales garantizan
+   que también herede los tokens aunque esté fuera del componente. */
+:root .dp__theme_light,
+:root .dp__theme_dark {
+  --dp-background-color: var(--tema-superficie);
+  --dp-text-color: var(--tema-texto);
+  --dp-hover-color: var(--tema-secundaria);
+  --dp-hover-text-color: var(--tema-texto);
+  --dp-primary-color: var(--tema-accion);
+  --dp-primary-text-color: var(--tema-sobre-accion);
+  --dp-secondary-color: var(--tema-secundaria);
+  --dp-border-color: var(--tema-borde);
+  --dp-border-color-hover: var(--tema-control);
+  --dp-border-color-focus: var(--tema-foco);
+  --dp-menu-border-color: var(--tema-borde);
+  --dp-disabled-color: var(--tema-deshabilitado);
+  --dp-disabled-color-text: var(--tema-texto-deshabilitado);
+  --dp-icon-color: var(--tema-texto-secundario);
+  --dp-icon-color-hover: var(--tema-foco);
+  --dp-danger-color: var(--tema-error-fuerte);
+  --dp-highlight-color: var(--tema-seleccion);
+  --dp-tooltip-color: var(--tema-tooltip);
+  --dp-scroll-bar-background: var(--tema-superficie);
+  --dp-scroll-bar-color: var(--tema-control);
+  --dp-range-between-dates-background-color: var(--tema-seleccion);
+  --dp-range-between-dates-text-color: var(--tema-texto);
+  --dp-range-between-border-color: var(--tema-foco);
+  --dp-success-color: var(--tema-exito-borde);
+  --dp-success-color-disabled: var(--tema-exito-suave);
+  --dp-button-text-color: var(--tema-texto);
+  --dp-marker-color: var(--tema-accion);
+}

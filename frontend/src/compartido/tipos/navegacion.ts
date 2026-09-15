@@ -5,6 +5,7 @@ export type VistaActiva =
   | 'pacientes'
   | 'profesionales'
   | 'especialidades'
+  | 'reportes'
   | 'configuraciones'
   | 'configuraciones-perfil'
   | 'configuraciones-usuarios'
@@ -21,6 +22,6 @@ export interface VistaNavegacion {
   id: VistaActiva
   etiqueta: string
   descripcion: string
-  icono: 'calendar' | 'users' | 'briefcase' | 'clipboard' | 'ajustes'
+  icono: 'calendar' | 'users' | 'briefcase' | 'clipboard' | 'ajustes' | 'reporte'
   hijos?: SubVistaNavegacion[]
 }

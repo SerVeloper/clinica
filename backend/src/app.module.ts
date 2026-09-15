@@ -9,6 +9,7 @@ import { ProfesionalesModule } from './modulos/profesionales/profesionales.modul
 import { EspecialidadesModule } from './modulos/especialidades/especialidades.module';
 import { ReservasModule } from './modulos/reservas/reservas.module';
 import { UsuariosModule } from './modulos/usuarios/usuarios.module';
+import { ReportesModule } from './modulos/reportes/reportes.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { UsuariosModule } from './modulos/usuarios/usuarios.module';
     ProfesionalesModule,
     UsuariosModule,
     ReservasModule,
+    ReportesModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: AuthGuard },
