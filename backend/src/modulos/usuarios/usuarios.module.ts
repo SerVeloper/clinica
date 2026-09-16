@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProfesionalesModule } from '../profesionales/profesionales.module';
+import { SesionesModule } from '../sesiones/sesiones.module';
 import { REPOSITORIO_USUARIOS } from './dominio/repositorios/repositorio-usuarios';
 import { PasswordServicio } from './aplicacion/servicios/password.servicio';
 import { AuthServicio } from './aplicacion/servicios/auth.servicio';
@@ -12,7 +13,7 @@ import { RepositorioUsuariosTypeOrm } from './infraestructura/persistencia/typeo
 import { UsuarioOrmEntidad } from './infraestructura/persistencia/typeorm/usuario.orm-entidad';
 
 @Module({
-  imports: [ConfigModule, TypeOrmModule.forFeature([UsuarioOrmEntidad]), ProfesionalesModule],
+  imports: [ConfigModule, TypeOrmModule.forFeature([UsuarioOrmEntidad]), ProfesionalesModule, SesionesModule],
   controllers: [AuthControlador, UsuariosControlador],
   providers: [
     PasswordServicio,

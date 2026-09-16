@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch, type CSSProperties } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref, watch, type CSSProperties } from 'vue'
 import ToastStack from './componentes/ui/ToastStack.vue'
 import { guardarSesion, leerSesion } from './compartido/api/almacenamiento-sesion'
+import { cerrarSesionEnServidor } from './compartido/api/cliente-api'
 import { useToasts } from './compartido/composables/useToasts'
 import type { RespuestaPaginada } from './compartido/tipos/paginacion'
 import type { VistaActiva, VistaNavegacion } from './compartido/tipos/navegacion'
@@ -479,7 +480,7 @@ async function ejecutarConEstado(accion: () => Promise<void>, mensajeExito?: str
     await accion()
     if (mensajeExito) mostrarToast('success', mensajeExito)
   } catch (e) {
-    if (e instanceof Error && e.message.toLowerCase().includes('sesión')) cerrarSesion()
+    if (e instanceof Error && e.message.toLowerCase().includes('sesión')) void cerrarSesion()
     mostrarToast('error', e instanceof Error ? e.message : 'Ocurrió un error inesperado')
   } finally {
     cargando.value = false
@@ -565,13 +566,25 @@ async function ingresar() {
   }, 'Sesión iniciada correctamente')
 }
 
-function cerrarSesion() {
+async function cerrarSesion() {
+  try {
+    await cerrarSesionEnServidor()
+  } finally {
+    limpiarSesionLocal()
+  }
+}
+
+function limpiarSesionLocal() {
   guardarSesion(STORAGE_TOKEN, null)
   guardarSesion(STORAGE_USUARIO, null)
   tokenSesion.value = ''
   usuarioActual.value = null
   reservas.value = []
   usuarios.value = []
+}
+
+function manejarSesionExpirada() {
+  limpiarSesionLocal()
 }
 
 async function alternarAgendaGlobal() {
@@ -833,9 +846,14 @@ async function cambiarEstadoReserva(reserva: Reserva, estado: EstadoReserva) {
 }
 
 onMounted(() => {
+  window.addEventListener('clinica:sesion-expirada', manejarSesionExpirada)
   if (!tokenSesion.value || !usuarioActual.value) return
   aplicarFiltroInicialUsuario(usuarioActual.value)
   void cargarDatosBase()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('clinica:sesion-expirada', manejarSesionExpirada)
 })
 </script>
 
