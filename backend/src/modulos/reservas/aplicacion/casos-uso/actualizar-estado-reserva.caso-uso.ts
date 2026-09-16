@@ -1,17 +1,20 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ErrorNegocio } from '../../../../compartido/dominio/error-negocio';
+import { UsuarioAutenticado } from '../../../usuarios/aplicacion/servicios/auth.servicio';
 import { EstadoReserva } from '../../dominio/entidades/estado-reserva';
 import { Reserva } from '../../dominio/entidades/reserva';
 import { REPOSITORIO_RESERVAS, RepositorioReservas } from '../../dominio/repositorios/repositorio-reservas';
 import { ActualizarEstadoReservaDto } from '../dtos/actualizar-estado-reserva.dto';
+import { verificarAccesoReserva } from '../servicios/verificar-acceso-reserva';
 
 @Injectable()
 export class ActualizarEstadoReservaCasoUso {
   constructor(@Inject(REPOSITORIO_RESERVAS) private readonly repositorio: RepositorioReservas) {}
 
-  async ejecutar(id: string, dto: ActualizarEstadoReservaDto) {
+  async ejecutar(id: string, dto: ActualizarEstadoReservaDto, usuario: UsuarioAutenticado) {
     const reserva = await this.repositorio.buscarPorId(id);
-    if (!reserva) throw new ErrorNegocio('Reserva no encontrada');
+    if (!reserva) throw new ErrorNegocio('Reserva no encontrada', 'NO_ENCONTRADO');
+    verificarAccesoReserva(reserva, usuario);
 
     if ([EstadoReserva.CONFIRMADA, EstadoReserva.ATENDIDA].includes(dto.estado)) {
       const solapadas = await this.repositorio.buscarConfirmadasSolapadas(reserva.profesionalId, reserva.fechaInicio, reserva.fechaFin);

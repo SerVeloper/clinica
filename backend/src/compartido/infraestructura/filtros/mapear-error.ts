@@ -3,6 +3,7 @@ import { ErrorNegocio } from '../../dominio/error-negocio';
 
 export function mapearError(error: unknown): never {
   if (error instanceof ErrorNegocio) {
+    if (error.codigo === 'NO_ENCONTRADO') throw new NotFoundException(error.message);
     throw new BadRequestException(error.message);
   }
 

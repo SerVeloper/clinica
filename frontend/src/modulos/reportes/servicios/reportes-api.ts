@@ -1,8 +1,5 @@
-import { descargarBlob, clienteApi } from '../../../compartido/api/cliente-api'
-import { leerSesion } from '../../../compartido/api/almacenamiento-sesion'
+import { clienteApi, descargarBlob } from '../../../compartido/api/cliente-api'
 import type { EspecialidadProfesionalReporte, FiltrosReporteReservas, FormatoReporteReservas, ResumenReporteReservas } from '../tipos/reporte-reservas'
-
-const ALMACEN_TOKEN = 'clinica_token'
 
 function parametrosConsulta(filtros: FiltrosReporteReservas): Record<string, string> {
   const parametros: Record<string, string> = { modo: filtros.modo }
@@ -34,6 +31,5 @@ export function consultarEspecialidadesDeProfesional() {
 }
 
 export async function descargarReporte(filtros: FiltrosReporteReservas, formato: FormatoReporteReservas): Promise<Blob> {
-  const token = leerSesion(ALMACEN_TOKEN) ?? ''
-  return descargarBlob(`/reportes/reservas/exportaciones/${formato}`, parametrosConsulta(filtros), token)
+  return descargarBlob(`/reportes/reservas/exportaciones/${formato}`, parametrosConsulta(filtros))
 }

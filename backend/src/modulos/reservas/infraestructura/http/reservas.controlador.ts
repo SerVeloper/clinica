@@ -41,9 +41,9 @@ export class ReservasControlador {
 
   @Get(':id')
   @ApiOkResponse({ description: 'Obtiene una reserva por id' })
-  async obtener(@Param('id') id: string) {
+  async obtener(@Param('id') id: string, @UsuarioActual() usuario: UsuarioAutenticado) {
     try {
-      return await this.obtenerReserva.ejecutar(id);
+      return await this.obtenerReserva.ejecutar(id, usuario);
     } catch (error) {
       mapearError(error);
     }
@@ -51,9 +51,9 @@ export class ReservasControlador {
 
   @Patch(':id/cancelar')
   @ApiOkResponse({ description: 'Cancela una reserva' })
-  async cancelar(@Param('id') id: string) {
+  async cancelar(@Param('id') id: string, @UsuarioActual() usuario: UsuarioAutenticado) {
     try {
-      return await this.cancelarReserva.ejecutar(id);
+      return await this.cancelarReserva.ejecutar(id, usuario);
     } catch (error) {
       mapearError(error);
     }
@@ -61,9 +61,13 @@ export class ReservasControlador {
 
   @Patch(':id/estado')
   @ApiOkResponse({ description: 'Actualiza el estado de una reserva' })
-  async actualizarEstado(@Param('id') id: string, @Body() dto: ActualizarEstadoReservaDto) {
+  async actualizarEstado(
+    @Param('id') id: string,
+    @Body() dto: ActualizarEstadoReservaDto,
+    @UsuarioActual() usuario: UsuarioAutenticado,
+  ) {
     try {
-      return await this.actualizarEstadoReserva.ejecutar(id, dto);
+      return await this.actualizarEstadoReserva.ejecutar(id, dto, usuario);
     } catch (error) {
       mapearError(error);
     }

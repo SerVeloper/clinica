@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
@@ -7,8 +8,13 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  const config = app.get(ConfigService);
+  const origen = config.get<string>('CORS_ORIGIN');
+  if (!origen) throw new Error('CORS_ORIGIN es obligatorio para iniciar el servidor');
+
   app.enableCors({
-    origin: true,
+    origin: origen,
+    credentials: true,
   });
 
   app.setGlobalPrefix('api');
